@@ -1,5 +1,6 @@
+"use strict";
 var vars = {
-    version: '1.5.3',
+    version: '1.5.4',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -248,7 +249,7 @@ var vars = {
     pointsUntilNextLevelMax: null,
 
     init: ()=> {
-        console.log(`%cSudoku version ${vars.version}`,'color: #06d474; font-weight: bold;');
+        console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
         vars.audio.init();
         vars.localStorage.init();
         vars.initButtonEventListeners();
@@ -265,7 +266,7 @@ var vars = {
             vars.getPointsUntilNextLevel();
         };
 
-        // initial display
+        // init display
         document.getElementById('playerLevelNum').textContent = vars.playerLevel;
         document.getElementById('playerPointsNum').textContent = vars.playerPoints;
         document.getElementById('pointsUntilNextLevelNum').textContent = vars.pointsUntilNextLevel;
@@ -595,7 +596,8 @@ var vars = {
             for (let c = 0; c < 9; c++) {
                 const x = c * cellPx, y = r * cellPx;
                 if (selected.r === r && selected.c === c) { // currently selected position
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; ctx.fillRect(x, y, cellPx, cellPx);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.fillRect(x, y, cellPx, cellPx);
                 };
 
                 const v = puzzle[r][c];
@@ -604,13 +606,13 @@ var vars = {
                         ctx.fillStyle = '#ffffff';
                         ctx.font = `600 ${Math.floor(cellPx * 0.6)}px sans-serif`;
                     } else { 
-                        ctx.fillStyle = '#c4ffe4ff';
+                        ctx.fillStyle = vars.textColour;
                         ctx.font = `500 ${Math.floor(cellPx * 0.6)}px sans-serif`;
                     };
                     ctx.fillText(String(v), x + cellPx / 2, y + cellPx / 2 + 2);
                 } else {
                     // Draw note candidates
-                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillStyle = '#e4e9a1ff';
                     ctx.font = `${Math.floor(cellPx * 0.22)}px sans-serif`;
                     const offsets = [[-0.65, -0.65], [0.65, -0.65], [-0.65, 0.65], [0.65, 0.65]];
                     let idx = 0;
@@ -1042,7 +1044,7 @@ function backgroundColourChange(which) {
     if (which==='default') which = 'green'; // default is green
     document.getElementById(`colour${which.charAt(0).toUpperCase()+which.slice(1)}`).classList.add('selectedColour');
 
-    mC = document.getElementById('mainContainer');
+    let mC = document.getElementById('mainContainer');
     mC.style.background = bg;
     canvas.style.background = bg;
 
@@ -1051,6 +1053,8 @@ function backgroundColourChange(which) {
     root.style.setProperty('--accent', accent);
 
     vars.localStorage.saveColourScheme(which);
+
+    vars.draw(); // update text colour
 };
 function backgroundColourRemoveSelected() {
     document.querySelector('.selectedColour')?.classList.remove('selectedColour');
@@ -1070,11 +1074,11 @@ document.getElementById('colourOrange').addEventListener('click', ()=> {
 document.getElementById('colourPink').addEventListener('click', ()=> {
     backgroundColourChange('pink');
 });
-document.getElementById('colourRed').addEventListener('click', ()=> {
-    backgroundColourChange('red');
-});
 document.getElementById('colourPurple').addEventListener('click', ()=> {
     backgroundColourChange('purple');
+});
+document.getElementById('colourRed').addEventListener('click', ()=> {
+    backgroundColourChange('red');
 });
 
 
