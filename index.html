@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="favicon.png">
+
+    <title>Sudoku</title>
+
+    <link rel="stylesheet" href="./css/main.css">
+
+    <script src="./js/miscFunctions_v3.js"></script>
+    <script src="./fonts/d40a0f0b1f.js"></script>
+
+    <script defer src="./js/main.js"></script>
+    <script src="./js/LevelAndPointsClass.js"></script>
+</head>
+
+<body oncontextmenu="return false;">
+    <div id="mainContainer">
+        <div id="mainWrapper" class="wrap">
+            <header>
+                <div>
+                    <div id="bonusGameButton">BONUS GAME: BRONZE <div id="bonusPips"></div></div>
+                    <div id="playerScoreAndLevelContainer">
+                        <div id="playerLevel" class="hidden">Level: <span id="playerLevelNum">-</span></div>
+                        
+                        <canvas id="levelCanvas" width="100" height="100" style="border-radius: 50%;"></canvas>
+                        <div id="playerPoints" class="hidden">Points: <span id="playerPointsNum">-</span></div>
+
+                        <div id="pointsUntilNextLevel" class="hidden">Points until next level: <span id="pointsUntilNextLevelNum">-</span></div>
+                        <div id="playerPointsOnWin">Points for win: <span id="playerPointsOnWinNum">-</span></div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <h1>Sudoku</h1>
+                    <div><select id="difficulty">
+                        <option value="30">Easy — 50 points</option>
+                        <option value="40" selected>Medium — 100 points</option>
+                        <option value="50">Hard — 200 points</option>
+                    </select>
+                    </div>
+                    <div>
+                        <button id="newBtn">New puzzle</button>
+                        <button id="resetBtn">Reset</button>
+                    </div>
+                </div>
+            </header>
+
+            <canvas id="board" width="660" height="660"></canvas>
+
+            <div class="footer">
+                <div class="legend">
+                    <div class="small">Selected: <span id="selInfo">none</span></div>
+                </div>
+                <div class="btns">
+                    <button id="checkBtn">Check</button>
+                    <button id="hintBtn">Hint</button>
+                    <button id="solveBtn">Show solution</button>
+                </div>
+            </div>
+
+            <div class="kbd-hint">Controls: click a cell or use arrow keys, type 1–9 to fill, Backspace/Delete to clear. Press "Hint" to fill a correct number in a random empty cell.</div>
+        </div>
+    </div>
+
+    <div id="exitBonusGameContainer">
+        <div id="exitBonusGameInnerContainer">
+            <div>Are you sure you want to exit the bonus game?</div>
+            <div id="exitButtonContainer">
+                <button id="exitOK" class="exitButton">Yes</button>
+                <button id="exitCancel" class="exitButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="floatingPoints">+200 points</div>
+
+    <div class="bonusGame rot270">BONUS GAME</div>
+    <div class="bonusGame rot90">BONUS GAME</div>
+
+    <div id="colourSettingsButton"><i class="fa-solid fa-eye"></i></div>
+    <div id="colourOptions" class="hidden">
+        <div id="colourBlue" class="colourOption">BLUE</div>
+        <div id="colourGreen" class="colourOption">GREEN</div>
+        <div id="colourOrange" class="colourOption">ORANGE</div>
+        <div id="colourPink" class="colourOption">PINK</div>
+        <div id="colourRed" class="colourOption">RED</div>
+        <div id="colourPurple" class="colourOption">PURPLE</div>
+    </div>
+</body>
+
+</html>
