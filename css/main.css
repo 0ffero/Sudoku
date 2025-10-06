@@ -79,7 +79,9 @@ button {
     opacity: 1;
     padding: 15px 10px;
     position: absolute;
+    text-align: center;
     transform: translate(210px, 0px);
+    width: 165px;
 }
 #bonusGameButton.active {
     border: 1px solid var(--black);
@@ -300,6 +302,13 @@ button {
 
 .score {
     font-weight: 600;
+}
+
+.twoTimesBonus {
+    font-size: 2.5em;
+    font-weight: bold;
+    text-shadow: 0 0 20px var(--white);
+    box-shadow: 0 0 20px 4px var(--white);
 }
 
 .wrap {

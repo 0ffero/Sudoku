@@ -1,6 +1,6 @@
 "use strict";
 var vars = {
-    version: '1.5.4',
+    version: '1.5.5',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -40,7 +40,7 @@ var vars = {
             // check to see if the bonus points date has passed
             let nowDate = new Date();
             let untilDate = new Date(vars.bonusPointsEnabledUntil.slice(0,4)*1, (vars.bonusPointsEnabledUntil.slice(4,6)*1)-1, vars.bonusPointsEnabledUntil.slice(6,8)*1);
-            if (vars.bonusPointsEnabled && nowDate > untilDate) {
+            if (vars.bonusPointsEnabled && nowDate >= untilDate) {
                 vars.bonusPointsEnabled = false;
                 vars.bonusGames.reset(); // reset bG.bronze, silver and gold and save them
             };
@@ -73,9 +73,30 @@ var vars = {
         },
 
         showAllVars: ()=> {
-            for (l in localStorage) {
+            for (let l in localStorage) {
                 if (l.startsWith(vars.localStorage.key)) { console.log(`${l} ${localStorage[l]}`); };
             };
+        },
+
+        updateBonusGamePointsForWin: ()=> {
+            let key = vars.localStorage.key;
+            let bonusGameDetails = JSON.parse(localStorage.getItem(`${key}bonusPuzzle`));
+            if (!bonusGameDetails) return; // no bonus game in progress
+
+            debugger;
+            bonusGameDetails.playerPointsOnWin = playerPointsOnWinNum.textContent*1;
+            bonusGameDetails.hintsUsed = bonusGameDetails.hintsUsed*1 + 1;
+
+            localStorage.setItem(`${key}bonusPuzzle`, JSON.stringify(bonusGameDetails));
+        },
+
+        updateBonusGamePositions: (r,c)=> {
+            let key = vars.localStorage.key;
+            let bonusGameDetails = JSON.parse(localStorage.getItem(`${key}bonusPuzzle`));
+            if (!bonusGameDetails) return; // no bonus game in progress
+
+            bonusGameDetails.positions.push({r,c});
+            localStorage.setItem(`${key}bonusPuzzle`, JSON.stringify(bonusGameDetails));
         }
     },
 
@@ -160,9 +181,7 @@ var vars = {
                 };
             } else {
                 vars.bonusPointsEnabled = true;
-                vars.bonusPointsEnabledUntil = new Date();
-                vars.bonusPointsEnabledUntil.setDate(vars.bonusPointsEnabledUntil.getDate() + 7);
-                vars.bonusPointsEnabledUntil = vars.bonusPointsEnabledUntil.toISOString().slice(0,10).replace(/-/g,'');
+                vars.setBonusEndDate();
                 alert(`All bonus games completed!\nYou will earn double points for the next 7 days!`);
             };
 
@@ -181,7 +200,8 @@ var vars = {
             let html = `BONUS GAME: ${currentBonusLevel ? currentBonusLevel.toUpperCase() : 'ALL COMPLETE'} <div id="bonusPips">`;
             if (!currentBonusLevel) {
                 bonusGameButton.classList.remove('active');
-                document.getElementById('bonusPips').innerHTML = '2x POINTS!';
+                bonusGameButton.classList.add('twoTimesBonus');
+                bonusGameButton.innerHTML = '2x POINTS!';
                 return; // all bonus games complete
             };
 
@@ -208,7 +228,7 @@ var vars = {
             };
 
             if (!gTU) {
-                console.log(`user can now click on the bonus game button!`);
+                console.log(`User can now click on the bonus game button!`);
             };
 
             bonusGameButton.innerHTML = html;
@@ -389,6 +409,9 @@ var vars = {
                     notes[selected.r][selected.c].clear();
                 };
                 resetBadArray = true;
+                if (vars.isBonusGame) {
+                    vars.localStorage.updateBonusGamePositions(selected.r, selected.c);
+                };
                 vars.checkForWin();
             } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
                 if (vars.initial[selected.r][selected.c] === 0) {
@@ -476,6 +499,10 @@ var vars = {
         } else if (!bG.gold.complete) {
             vars.pointsToCount = bG.gold.bonus;
             bG.gold.complete = true;
+            vars.setBonusEndDate();
+
+            //bonusGameButton.classList.remove('active');
+            bonusGameButton.classList.add('twoTimesBonus');
         } else {
             let msg = `Error: All bonus games are complete!\n\nSo this was mis-marked as a bonus game!`;
             console.error(msg);
@@ -497,7 +524,7 @@ var vars = {
         vars.showFloatingPoints(vars.pointsToCount);
 
         let key = vars.localStorage.key;
-        localStorage.setItem(`${key}_bonusPuzzle`, '');
+        localStorage.setItem(`${key}bonusPuzzle`, '');
 
         // show the points won div again
         playerPointsOnWin.style.display = 'block';
@@ -831,7 +858,7 @@ var vars = {
 
         if (vars.isBonusGame) {
             let key = vars.localStorage.key;
-            let bonusGameDetails = localStorage.getItem(`${key}_bonusPuzzle`);
+            let bonusGameDetails = localStorage.getItem(`${key}bonusPuzzle`);
             playerPointsOnWin.style.display = 'none';
 
             if (bonusGameDetails) {
@@ -842,8 +869,12 @@ var vars = {
                 notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
                 vars.resetSelected();
 
-                console.warn(`We have to deal with the amount of hints used here!!!`);
-                let hintsUsed = bonusGameDetails.hintsUsed;
+                playerPointsOnWinNum.textContent = bonusGameDetails.playerPointsOnWin;
+
+                bonusGameDetails.positions.forEach((p)=> {
+                    const { r, c } = p;
+                    puzzle[r][c] = solution[r][c];
+                });
                 
                 vars.draw();
                 
@@ -866,12 +897,15 @@ var vars = {
             let bonusGameDetails = {
                 puzzle: puzzle,
                 solution: solution,
-                hintsUsed: 0
+                hintsUsed: 0,
+                playerPointsOnWin: vars.getBonusPoints(),
+                positions: [],
+                difficultyOfPuzzle: vars.currentGameDifficulty
             };
 
             bonusGameDetails = JSON.stringify(bonusGameDetails);
             let key = vars.localStorage.key;
-            localStorage.setItem(`${key}_bonusPuzzle`, bonusGameDetails);
+            localStorage.setItem(`${key}bonusPuzzle`, bonusGameDetails);
         };
 
         vars.draw();
@@ -885,15 +919,30 @@ var vars = {
             case 'hard': remove = 40; break;
         };
         playerPointsOnWinNum.textContent = Math.max(0, (playerPointsOnWinNum.textContent*1)-remove);
+        if (vars.bonusPointsEnabled) {
+            playerPointsOnWin
+        };
 
-        if (!vars.isBonusGame) return; // only reduce points in a bonus game
+        if (!vars.isBonusGame) return;
 
         vars.getBonusPoints(remove);
+
+        vars.localStorage.updateBonusGamePointsForWin();
     },
 
     resetSelected: ()=> {
         selected = { r: -1, c: -1 };
         selInfo.textContent = 'none';
+    },
+
+    setBonusEndDate: ()=> {
+        vars.bonusPointsEnabledUntil = new Date();
+        vars.bonusPointsEnabledUntil.setDate(vars.bonusPointsEnabledUntil.getDate() + 7);
+        vars.bonusPointsEnabledUntil = vars.bonusPointsEnabledUntil.toISOString().slice(0,10).replace(/-/g,'');
+
+        let key = vars.localStorage.key;
+        localStorage.setItem(key+'bonusPointsEnabledUntil', vars.bonusPointsEnabledUntil);
+        localStorage.setItem(key+'bonusPointsEnabled', 'true');
     },
 
     showColourOptions: (show=true)=> {
@@ -1010,7 +1059,7 @@ function backgroundColourChange(which) {
         break;
 
         case 'orange':
-            bg = 'linear-gradient(rgb(133 89 0) 0%, rgb(32 11 11) 100%)';
+            bg = 'linear-gradient(#5d3e00 0%, #311709 100%)';
             buttonBG = '#a66e00'
             accent = vars.textColour = '#ffb930'
         break;
