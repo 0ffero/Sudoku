@@ -1039,6 +1039,7 @@ function backgroundColourChange(which) {
     };
 
     backgroundColourRemoveSelected();
+    if (which==='default') which = 'green'; // default is green
     document.getElementById(`colour${which.charAt(0).toUpperCase()+which.slice(1)}`).classList.add('selectedColour');
 
     mC = document.getElementById('mainContainer');
