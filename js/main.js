@@ -1,12 +1,16 @@
 "use strict";
 var vars = {
-    version: '1.5.6',
+    version: '1.5.7',
 
     currentGameDifficulty: '',
     DEBUG: false,
-    gameWon: false,
     textColour: '#06d474',
+    
+    animationEntries: [], // array of {r,c,number,value,min,max,inc,complete,delayInFrames}
     bad: [], // array of {r,c} objects for cells that are in conflict
+    gameWon: false,
+
+    cellWidth: 9,
 
     localStorage: {
         key: 'sudoku_',
@@ -270,6 +274,10 @@ var vars = {
     pointsUntilNextLevel: null,
     pointsUntilNextLevelMax: null,
 
+    selected: { r: -1, c: -1 },
+
+    winAnimationRunning: false,
+
     init: ()=> {
         console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
         vars.audio.init();
@@ -408,32 +416,46 @@ var vars = {
                 return;
             };
 
-            if (selected.r < 0) return;
+            if (vars.selected.r < 0 || vars.selected.c < 0) return;
+
             let resetBadArray = false;
             if (e.key >= '1' && e.key <= '9') {
-                const n = parseInt(e.key);
-                if (vars.initial[selected.r][selected.c] === 0) {
-                    puzzle[selected.r][selected.c] = n;
-                    notes[selected.r][selected.c].clear();
+                const n = e.key*1;
+                if (vars.initial[vars.selected.r][vars.selected.c] === 0) {
+                    puzzle[vars.selected.r][vars.selected.c] = n;
+                    notes[vars.selected.r][vars.selected.c].clear();
                 };
                 resetBadArray = true;
                 if (vars.isBonusGame) {
-                    vars.localStorage.updateBonusGamePositions(selected.r, selected.c);
+                    vars.localStorage.updateBonusGamePositions(vars.selected.r, vars.selected.c);
                 };
-                vars.saveUserEntry(selected.r, selected.c, n);
+                vars.saveUserEntry(vars.selected.r, vars.selected.c, n);
                 vars.checkForWin();
             } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
-                if (vars.initial[selected.r][selected.c] === 0) {
-                    puzzle[selected.r][selected.c] = 0;
-                    notes[selected.r][selected.c].clear();
+                if (vars.initial[vars.selected.r][vars.selected.c] === 0) {
+                    puzzle[vars.selected.r][vars.selected.c] = 0;
+                    notes[vars.selected.r][vars.selected.c].clear();
                 };
-                vars.removeUserEntry(selected.r, selected.c);
+                vars.removeUserEntry(vars.selected.r, vars.selected.c);
                 resetBadArray = true;
-            } else if (e.key === 'ArrowUp') { selected.r = (selected.r + 8) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
-            else if (e.key === 'ArrowDown') { selected.r = (selected.r + 1) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
-            else if (e.key === 'ArrowLeft') { selected.c = (selected.c + 8) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
-            else if (e.key === 'ArrowRight') { selected.c = (selected.c + 1) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
-
+            } else if (e.key === 'ArrowUp') {
+                vars.selected.r = (vars.selected.r + 8) % 9;
+                selInfo.textContent = `r${vars.selected.r + 1} c${vars.selected.c + 1}`;
+                vars.draw(); 
+            } else if (e.key === 'ArrowDown') {
+                vars.selected.r = (vars.selected.r + 1) % 9;
+                selInfo.textContent = `r${vars.selected.r + 1} c${vars.selected.c + 1}`;
+                vars.draw(); 
+            } else if (e.key === 'ArrowLeft') {
+                vars.selected.c = (vars.selected.c + 8) % 9;
+                selInfo.textContent = `r${vars.selected.r + 1} c${vars.selected.c + 1}`;
+                vars.draw(); 
+            } else if (e.key === 'ArrowRight') {
+                vars.selected.c = (vars.selected.c + 1) % 9;
+                selInfo.textContent = `r${vars.selected.r + 1} c${vars.selected.c + 1}`;
+                vars.draw(); 
+            };
+            
             if (resetBadArray) {
                 vars.bad = [];
                 vars.draw();
@@ -460,12 +482,12 @@ var vars = {
                     } else if (cellX > cellPx - 10 && cellY > cellPx - 10) {
                         noteMode = { r, c, corner: 4 };
                     } else {
-                        selected = { r, c };
+                        vars.selected = { r, c };
                         selInfo.textContent = `r${r + 1} c${c + 1}`;
                         noteMode = null;
                     };
                 } else {
-                    selected = { r, c };
+                    vars.selected = { r, c };
                     selInfo.textContent = `r${r + 1} c${c + 1}`;
                     noteMode = null;
                 };
@@ -493,6 +515,21 @@ var vars = {
                 break;
             };
         });
+    },
+
+    backtrackFill(grid, idx = 0) {
+        if (idx >= vars.cellWidth**2) return true;
+        const r = Math.floor(idx / vars.cellWidth), c = idx % vars.cellWidth;
+        if (grid[r][c] !== 0) return vars.backtrackFill(grid, idx + 1);
+        const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]; shuffleArray(nums);
+        for (const n of nums) {
+            if (vars.canPlace(grid, r, c, n)) {
+                grid[r][c] = n;
+                if (vars.backtrackFill(grid, idx + 1)) return true;
+                grid[r][c] = 0;
+            };
+        };
+        return false;
     },
 
     bonusGameWin: ()=> {
@@ -552,7 +589,7 @@ var vars = {
     },
 
     checkForWin: ()=> {
-        let invalid = size**2;
+        let invalid = vars.cellWidth**2;
         solution.forEach((r,rI)=> {
             r.forEach((c,cI)=> {
                 c===puzzle[rI][cI] && (invalid--);
@@ -562,8 +599,10 @@ var vars = {
         if (!invalid) {
             vars.gameWon = true;
             setTimeout(() => {
+                vars.winAnimationRunning = true;
+
                 vars.gameWon = true;
-                selected = { r: -1, c: -1 }; // deselect the last placed position
+                vars.selected = { r: -1, c: -1 }; // deselect the last placed position
 
                 vars.draw();
 
@@ -579,6 +618,8 @@ var vars = {
                 };
 
                 vars.disableButtonsAfterWin(true);
+
+                vars.doWinAnimation();
 
                 vars.startAddingScore();
                 vars.bonusGames.drawBonusPips();
@@ -617,10 +658,37 @@ var vars = {
         hintBtn.style.opacity = disable ? 0.3 : 1;
         resetBtn.style.opacity = disable ? 0.3 : 1;
         solveBtn.style.opacity = disable ? 0.3 : 1;
+        undoBtn.style.opacity = disable ? 0.3 : 1;
     },
 
     disableSolutionButton: (disable=true) => {
         solveBtn.style.opacity = disable ? 0.3 : 1;
+    },
+
+    doWinAnimation: ()=> {
+        let entries = vars.playerEntryList;
+        entries.forEach((entry,eI)=> {
+            let data = { value: 43, min: 43, max: 103, inc: 2, complete: false, r: entry.r, c: entry.c, number: entry.n, delayInFrames: eI*3 };
+            vars.animationEntries.push(data);
+        });
+
+
+        vars.checkAnimationFinishedInterval = setInterval(()=> {
+            // check if the animations are complete
+            let stillToFinish = vars.animationEntries.filter(e=>!e.complete);
+            if (!stillToFinish.length) { // they are!
+                console.log(`Animation complete! Showing the game over message`);
+                clearInterval(vars.checkAnimationFinishedInterval);
+                delete vars.checkAnimationFinishedInterval;
+                vars.winAnimationRunning = false;
+                vars.draw();
+                return;
+            };
+
+            // still waiting on at least one animation to finish
+            vars.updateWinTextAnimation();
+            vars.draw();
+        }, 1000/60);
     },
 
     draw: () => {
@@ -639,19 +707,22 @@ var vars = {
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 const x = c * cellPx, y = r * cellPx;
-                if (selected.r === r && selected.c === c) { // currently selected position
+                if (vars.selected.r === r && vars.selected.c === c) { // currently selected position
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
                     ctx.fillRect(x, y, cellPx, cellPx);
                 };
 
                 const v = puzzle[r][c];
                 if (v !== 0) {
-                    if (vars.initial[r][c] !== 0) {
+                    if (vars.initial[r][c] !== 0) { // this position wasnt hidden from the user
                         ctx.fillStyle = '#ffffff';
                         ctx.font = `600 ${Math.floor(cellPx * 0.6)}px sans-serif`;
-                    } else { 
+                    } else {  // this position WAS hidden from the user
+                        // are we animating the win numbers?
+                        let anim = vars.animationEntries.find(a=>a.r===r && a.c===c);
+                        let fontSize = !anim ? Math.floor(cellPx * 0.6) : anim.value;
                         ctx.fillStyle = vars.textColour;
-                        ctx.font = `500 ${Math.floor(cellPx * 0.6)}px sans-serif`;
+                        ctx.font = `500 ${fontSize}px sans-serif`;
                     };
                     ctx.fillText(String(v), x + cellPx / 2, y + cellPx / 2 + 2);
                 } else {
@@ -683,7 +754,7 @@ var vars = {
             ctx.beginPath(); ctx.moveTo(i * cellPx, 0); ctx.lineTo(i * cellPx, canvas.height); ctx.stroke();
         };
 
-        if (vars.gameWon) {
+        if (vars.gameWon && !vars.winAnimationRunning) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.925)';
             ctx.fillRect(0, canvas.height / 2 - 330, canvas.width, 660);
             ctx.fillStyle = vars.textColour;
@@ -705,7 +776,7 @@ var vars = {
         let attempts = 0;
         while (attempts < 100) {
             const g = vars.makeEmptyGrid();
-            if (backtrackFill(g, 0)) return g;
+            if (vars.backtrackFill(g, 0)) return g;
             attempts++;
         }
         throw new Error("Failed to generate full Sudoku board after many attempts");
@@ -769,10 +840,10 @@ var vars = {
 
 
         let largeC = 0;
-        for (let c=0; c<size; c++) {
+        for (let c=0; c<vars.cellWidth; c++) {
             let emptyCount = 0;
             let emptyPositions = [];
-            for (let r=0; r<size; r++) {
+            for (let r=0; r<vars.cellWidth; r++) {
                 let v = puzzle[r][c];
                 if (!v) {
                     emptyCount++;
@@ -820,8 +891,8 @@ var vars = {
         let mult = vars.currentGameDifficulty === 'hard' ? 4 : 1;
         if (playerPointsOnWinNum.textContent*1<=10*mult) return; // no more hints allowed
         // is there a highlighted empty position?
-        if (selected.r >= 0 && selected.c >= 0) {
-            const { r, c } = selected;
+        if (vars.selected.r >= 0 && vars.selected.c >= 0) {
+            const { r, c } = vars.selected;
             if (puzzle[r][c] === 0) { // is it empty?
                 puzzle[r][c] = solution[r][c];
                 notes[r][c].clear();
@@ -870,6 +941,7 @@ var vars = {
     newPuzzle: () => {
         vars.gameWon = false;
 
+        vars.animationEntries = [];
         vars.playerEntryList = [];
 
         vars.isBonusGame ? vars.showBonusMessages(true) : vars.showBonusMessages(false);
@@ -954,7 +1026,7 @@ var vars = {
     },
 
     resetSelected: ()=> {
-        selected = { r: -1, c: -1 };
+        vars.selected = { r: -1, c: -1 };
         selInfo.textContent = 'none';
     },
 
@@ -1077,6 +1149,24 @@ var vars = {
         } else if (d.value==='30') {
             d.style.backgroundColor = 'rgb(0 140 0)';
         };
+    },
+
+    updateWinTextAnimation: ()=> {
+        let eD = vars.animationEntries;
+        eD.forEach((e)=> {
+            if (e.delayInFrames > 0) {
+                e.delayInFrames--;
+                return;
+            };
+            e.value += e.inc;
+            if (e.value >= e.max) {
+                e.inc *= -1;
+                e.value = e.max;
+            } else if (e.value <= e.min) {
+                e.complete = true;
+                e.value = e.min;
+            };
+        });
     }
 };
 
@@ -1178,15 +1268,14 @@ let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');
 let playerPointsOnWinNum = document.getElementById('playerPointsOnWinNum');
 let resetBtn = document.getElementById('resetBtn');
-let undoBtn = document.getElementById('undoBtn');
 let selInfo = document.getElementById('selInfo');
 let solveBtn = document.getElementById('solveBtn');
+let undoBtn = document.getElementById('undoBtn');
 
 // set up the canvas
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
-const size = 9;
-const cellPx = canvas.width / size;
+const cellPx = canvas.width / vars.cellWidth;
 
 // build a puzzle
 vars.initial = vars.makeEmptyGrid();
@@ -1195,23 +1284,6 @@ let solution = vars.makeEmptyGrid();
 
 // and add the notes array
 let notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
-
-let selected = { r: -1, c: -1 };
-
-function backtrackFill(grid, idx = 0) {
-    if (idx >= 81) return true;
-    const r = Math.floor(idx / 9), c = idx % 9;
-    if (grid[r][c] !== 0) return backtrackFill(grid, idx + 1);
-    const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]; shuffleArray(nums);
-    for (const n of nums) {
-        if (vars.canPlace(grid, r, c, n)) {
-            grid[r][c] = n;
-            if (backtrackFill(grid, idx + 1)) return true;
-            grid[r][c] = 0;
-        };
-    };
-    return false;
-};
 
 let noteMode = null;
 
