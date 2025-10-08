@@ -1,6 +1,6 @@
 "use strict";
 var vars = {
-    version: '1.5.5',
+    version: '1.5.6',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -264,6 +264,8 @@ var vars = {
     playerLevel: 0,
     playerPoints: 0,
 
+    playerEntryList: [ ], // holds the placed positions for the current puzzle
+
     pointsToCount: 0,
     pointsUntilNextLevel: null,
     pointsUntilNextLevelMax: null,
@@ -382,6 +384,12 @@ var vars = {
             puzzle = vars.copyGrid(solution);
             vars.draw();
         });
+
+        undoBtn.addEventListener('click', () => {
+            if (vars.gameWon) return;
+
+            vars.undoLastMove();
+        });
     },
 
     initKeyboardEventListeners: ()=> {
@@ -395,7 +403,7 @@ var vars = {
                     if (notes[r][c].has(n)) notes[r][c].delete(n);
                     else notes[r][c].add(n);
                     vars.draw();
-                }
+                };
                 if (e.key === 'Escape') { noteMode = null; }
                 return;
             };
@@ -412,12 +420,14 @@ var vars = {
                 if (vars.isBonusGame) {
                     vars.localStorage.updateBonusGamePositions(selected.r, selected.c);
                 };
+                vars.saveUserEntry(selected.r, selected.c, n);
                 vars.checkForWin();
             } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
                 if (vars.initial[selected.r][selected.c] === 0) {
                     puzzle[selected.r][selected.c] = 0;
                     notes[selected.r][selected.c].clear();
                 };
+                vars.removeUserEntry(selected.r, selected.c);
                 resetBadArray = true;
             } else if (e.key === 'ArrowUp') { selected.r = (selected.r + 8) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
             else if (e.key === 'ArrowDown') { selected.r = (selected.r + 1) % 9; selInfo.textContent = `r${selected.r + 1} c${selected.c + 1}`; vars.draw(); }
@@ -534,6 +544,13 @@ var vars = {
         vars.localStorage.saveBonusDetails();
     },
 
+    canPlace: (grid, r, c, n) => {
+        for (let i = 0; i < 9; i++) if (grid[r][i] === n || grid[i][c] === n) return false;
+        const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[br + i][bc + j] === n) return false;
+        return true;
+    },
+
     checkForWin: ()=> {
         let invalid = size**2;
         solution.forEach((r,rI)=> {
@@ -583,7 +600,7 @@ var vars = {
             for (let i = 0; i < 9 && !found; i++) for (let j = 0; j < 9; j++) if (g[i][j] === 0) { rr = i; cc = j; found = true; break; }
             if (!found) { count++; return; }
             for (let n = 1; n <= 9; n++) {
-                if (canPlace(g, rr, cc, n)) {
+                if (vars.canPlace(g, rr, cc, n)) {
                     g[rr][cc] = n;
                     solve();
                     g[rr][cc] = 0;
@@ -679,7 +696,7 @@ var vars = {
         const bad = [];
         for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
             const v = g[r][c]; if (v === 0) continue;
-            g[r][c] = 0; const ok = canPlace(g, r, c, v); g[r][c] = v; if (!ok) bad.push({ r, c });
+            g[r][c] = 0; const ok = vars.canPlace(g, r, c, v); g[r][c] = v; if (!ok) bad.push({ r, c });
         };
         return bad;
     },
@@ -853,6 +870,8 @@ var vars = {
     newPuzzle: () => {
         vars.gameWon = false;
 
+        vars.playerEntryList = [];
+
         vars.isBonusGame ? vars.showBonusMessages(true) : vars.showBonusMessages(false);
 
 
@@ -930,9 +949,17 @@ var vars = {
         vars.localStorage.updateBonusGamePointsForWin();
     },
 
+    removeUserEntry: (r, c) => {
+        vars.playerEntryList = vars.playerEntryList.filter(e=>!(e.r===r && e.c===c));
+    },
+
     resetSelected: ()=> {
         selected = { r: -1, c: -1 };
         selInfo.textContent = 'none';
+    },
+
+    saveUserEntry: (r, c, n) => {
+        vars.playerEntryList.push({ r, c, n });
     },
 
     setBonusEndDate: ()=> {
@@ -1019,6 +1046,18 @@ var vars = {
 
     switchColourOptionsVisibility: ()=> {
         document.getElementById('colourOptions').classList.toggle('hidden');
+    },
+
+    undoLastMove: ()=> {
+        if (vars.gameWon) return;
+        if (!vars.playerEntryList.length) return;
+
+        let last = vars.playerEntryList.pop();
+        const { r, c } = last;
+        puzzle[r][c] = 0;
+        notes[r][c].clear();
+        vars.bad = [];
+        vars.draw();
     },
 
     updateCheckButtonText: ()=> {
@@ -1139,6 +1178,7 @@ let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');
 let playerPointsOnWinNum = document.getElementById('playerPointsOnWinNum');
 let resetBtn = document.getElementById('resetBtn');
+let undoBtn = document.getElementById('undoBtn');
 let selInfo = document.getElementById('selInfo');
 let solveBtn = document.getElementById('solveBtn');
 
@@ -1164,21 +1204,15 @@ function backtrackFill(grid, idx = 0) {
     if (grid[r][c] !== 0) return backtrackFill(grid, idx + 1);
     const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]; shuffleArray(nums);
     for (const n of nums) {
-        if (canPlace(grid, r, c, n)) {
+        if (vars.canPlace(grid, r, c, n)) {
             grid[r][c] = n;
             if (backtrackFill(grid, idx + 1)) return true;
             grid[r][c] = 0;
-        }
-    }
+        };
+    };
     return false;
-}
+};
 
-function canPlace(grid, r, c, n) {
-    for (let i = 0; i < 9; i++) if (grid[r][i] === n || grid[i][c] === n) return false;
-    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (grid[br + i][bc + j] === n) return false;
-    return true;
-}
 let noteMode = null;
 
 
