@@ -248,6 +248,25 @@ button {
     color: var(--muted);
 }
 
+#loadingScreenContainer {
+    transition: 1s;
+    align-items: center;
+    background-color: var(--bg);
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    left: 0;
+    opacity: 1;
+    position: absolute;
+    top: 0;
+    width: 100vw;
+}
+#loadingScreenContainer.fadeout {
+    animation: fadeOut 1s ease-in-out forwards;
+    opacity: 0;
+}
+
 #mainContainer {
     background: linear-gradient(180deg, var(--bg) 0%, var(--card) 100%);
     display: flex;

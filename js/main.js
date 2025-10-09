@@ -1,6 +1,16 @@
 "use strict";
+/* 
+    TO DO LIST
+
+     - when the player clicks on the bonus game button, make sure there is a puzzle of the current difficulty level
+       available. if not, generate one. Curently we assume that the saved puzzle is of the correct difficulty level.
+       but if the player has changed the difficulty since they last played a bonus game, this may not be the case.
+       Just now, I am saving the difficulty level in the saved bonus game details, so we can check it.
+    
+     - add fireworks animation on win
+*/
 var vars = {
-    version: '1.5.7',
+    version: '1.5.8',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -257,7 +267,9 @@ var vars = {
                     if (!fillCount) return;
                     if (!c) {
                         fillCount--;
-                        puzzle[rI][cI] = solution[rI][cI]
+                        let value = solution[rI][cI];
+                        puzzle[rI][cI] = value;
+                        vars.playerEntryList.push({ r: rI, c: cI, n: value });
                     };
                 });
             });
@@ -268,7 +280,7 @@ var vars = {
     playerLevel: 0,
     playerPoints: 0,
 
-    playerEntryList: [ ], // holds the placed positions for the current puzzle
+    playerEntryList: [], // holds the placed positions for the current puzzle
 
     pointsToCount: 0,
     pointsUntilNextLevel: null,
@@ -277,6 +289,7 @@ var vars = {
     selected: { r: -1, c: -1 },
 
     winAnimationRunning: false,
+    winAnimationType: 'ScaleDown', // 'scaleUpScaleDown' or 'scaleDown'
 
     init: ()=> {
         console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
@@ -308,6 +321,10 @@ var vars = {
 
         vars.newPuzzle(); // we need the difficulty before we can decide the multiplier for the bonus game
         
+        setTimeout(()=> {
+            vars.hideLoadingScreen();
+        }, 1000);
+
         vars.bonusGames.drawBonusPips();
     },
 
@@ -666,9 +683,19 @@ var vars = {
     },
 
     doWinAnimation: ()=> {
+        let animationType = vars.winAnimationType;
         let entries = vars.playerEntryList;
+        let startValue = 43;
+        let startDirection = 1;
+        let delayMult = 3;
+        if (animationType!=='scaleUpScaleDown') {
+            entries.reverse();
+            startValue = 83;
+            startDirection = -1;
+            delayMult = 3;
+        };
         entries.forEach((entry,eI)=> {
-            let data = { value: 43, min: 43, max: 103, inc: 2, complete: false, r: entry.r, c: entry.c, number: entry.n, delayInFrames: eI*3 };
+            let data = { value: startValue, min: 43, max: 103, inc: 2*startDirection, complete: false, r: entry.r, c: entry.c, number: entry.n, delayInFrames: eI*delayMult };
             vars.animationEntries.push(data);
         });
 
@@ -914,6 +941,14 @@ var vars = {
         vars.reducePointsForWin();
 
         vars.draw();
+    },
+
+    hideLoadingScreen: ()=> {
+        let container = document.getElementById('loadingScreenContainer');
+        container.classList.add('fadeout');
+        setTimeout(()=> {
+            container.style.display = 'none';
+        },1100)
     },
 
     isInteger: (number)=> {
