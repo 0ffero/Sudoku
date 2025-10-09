@@ -1,11 +1,9 @@
 "use strict";
 /* 
     TO DO LIST
-
-     - add fireworks animation on win
 */
 var vars = {
-    version: '1.5.8',
+    version: '1.6',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -191,7 +189,6 @@ var vars = {
             } else {
                 vars.bonusPointsEnabled = true;
                 vars.setBonusEndDate();
-                alert(`All bonus games completed!\nYou will earn double points for the next 7 days!`);
             };
 
             if (highlightBonusGameButton) {
@@ -321,6 +318,15 @@ var vars = {
         }, 1000);
 
         vars.bonusGames.drawBonusPips();
+
+        const fw = vars.classFireworks = new Fireworks('fwCanvas', {
+            rocketMinSpeed: 7,
+            rocketMaxSpeed: 10,
+            gravity: 0.18,
+            particleCount: 160,
+            particleLife: 70,
+            spawnInterval: 1000,
+        });
     },
 
     initButtonEventListeners: ()=> {
@@ -632,6 +638,7 @@ var vars = {
                 vars.disableButtonsAfterWin(true);
 
                 vars.doWinAnimation();
+                vars.showFireworks();
 
                 vars.startAddingScore();
                 vars.bonusGames.drawBonusPips();
@@ -973,6 +980,7 @@ var vars = {
 
         vars.animationEntries = [];
         vars.playerEntryList = [];
+        vars.showFireworks(false);
 
         vars.isBonusGame ? vars.showBonusMessages(true) : vars.showBonusMessages(false);
 
@@ -1086,13 +1094,28 @@ var vars = {
         localStorage.setItem(key+'bonusPointsEnabled', 'true');
     },
 
+    showBonusMessages: (show=true)=> {
+        [...document.getElementsByClassName('bonusGame')].forEach((t)=> { show ? t.classList.remove('hidden') : t.classList.add('hidden') });
+    },
+
     showColourOptions: (show=true)=> {
         let div = document.getElementById('colourOptions');
         show ? div.classList.remove('hidden') : div.classList.add('hidden');
     },
 
-    showBonusMessages: (show=true)=> {
-        [...document.getElementsByClassName('bonusGame')].forEach((t)=> { show ? t.classList.remove('hidden') : t.classList.add('hidden') });
+    showFireworks: (show=true)=> {
+        let container = document.getElementById('fireworksContainer');
+        if (show) {
+            vars.classFireworks.start();
+            container.classList.add('active');
+            return;
+        } else {
+            container.classList.remove('active');
+            setTimeout(()=> {
+                vars.classFireworks.stop();
+            }, 1100);
+        };
+        
     },
 
     showFloatingPoints(points=null) {
