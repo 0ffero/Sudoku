@@ -2,11 +2,6 @@
 /* 
     TO DO LIST
 
-     - when the player clicks on the bonus game button, make sure there is a puzzle of the current difficulty level
-       available. if not, generate one. Curently we assume that the saved puzzle is of the correct difficulty level.
-       but if the player has changed the difficulty since they last played a bonus game, this may not be the case.
-       Just now, I am saving the difficulty level in the saved bonus game details, so we can check it.
-    
      - add fireworks animation on win
 */
 var vars = {
@@ -98,8 +93,8 @@ var vars = {
             if (!bonusGameDetails) return; // no bonus game in progress
 
             debugger;
-            bonusGameDetails.playerPointsOnWin = playerPointsOnWinNum.textContent*1;
-            bonusGameDetails.hintsUsed = bonusGameDetails.hintsUsed*1 + 1;
+            bonusGameDetails[vars.currentGameDifficulty].playerPointsOnWin = playerPointsOnWinNum.textContent*1;
+            bonusGameDetails[vars.currentGameDifficulty].hintsUsed = bonusGameDetails[vars.currentGameDifficulty].hintsUsed*1 + 1;
 
             localStorage.setItem(`${key}bonusPuzzle`, JSON.stringify(bonusGameDetails));
         },
@@ -109,7 +104,7 @@ var vars = {
             let bonusGameDetails = JSON.parse(localStorage.getItem(`${key}bonusPuzzle`));
             if (!bonusGameDetails) return; // no bonus game in progress
 
-            bonusGameDetails.positions.push({r,c});
+            bonusGameDetails[vars.currentGameDifficulty].positions.push({r,c});
             localStorage.setItem(`${key}bonusPuzzle`, JSON.stringify(bonusGameDetails));
         }
     },
@@ -337,7 +332,7 @@ var vars = {
             bonusGameButton.classList.remove('active');
             bonusGameButton.style.backgroundImage = 'none';
             vars.isBonusGame = true;
-            vars.disableSolutionButton(true); // user doesnt get to use buttons in a bonus game
+            vars.disableSolutionButton(true); // user doesnt get to use the solution button in a bonus game
             vars.showBonusMessages(true);
             vars.newPuzzle();
         });
@@ -981,36 +976,39 @@ var vars = {
 
         vars.isBonusGame ? vars.showBonusMessages(true) : vars.showBonusMessages(false);
 
-
-        if (vars.isBonusGame) {
-            let key = vars.localStorage.key;
-            let bonusGameDetails = localStorage.getItem(`${key}bonusPuzzle`);
-            playerPointsOnWin.style.display = 'none';
-
-            if (bonusGameDetails) {
-                bonusGameDetails = JSON.parse(bonusGameDetails);
-                puzzle = bonusGameDetails.puzzle;
-                solution = bonusGameDetails.solution;
-                vars.initial = vars.copyGrid(puzzle);
-                notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
-                vars.resetSelected();
-
-                playerPointsOnWinNum.textContent = bonusGameDetails.playerPointsOnWin;
-
-                bonusGameDetails.positions.forEach((p)=> {
-                    const { r, c } = p;
-                    puzzle[r][c] = solution[r][c];
-                });
-                
-                vars.draw();
-                
-                return;
-            };
-        };
-        
         vars.currentGameDifficulty = difficultySelect.value==='30' ? 'easy' : difficultySelect.value==='40' ? 'medium' : 'hard';
         playerPointsOnWinNum.textContent = difficultySelect.value==='30' ? '50' : difficultySelect.value==='40' ? '100' : '200';
-        
+
+        if (vars.isBonusGame) {
+            playerPointsOnWin.style.display = 'none';
+
+            let key = vars.localStorage.key;
+            let bonusGameDetails = localStorage.getItem(`${key}bonusPuzzle`);
+
+            if (bonusGameDetails) { // does a bonus puzzle with the current difficulty exist?
+                bonusGameDetails = JSON.parse(bonusGameDetails);
+                if (bonusGameDetails[vars.currentGameDifficulty]) { // YES!
+                    bonusGameDetails = bonusGameDetails[vars.currentGameDifficulty];
+                    puzzle = bonusGameDetails.puzzle;
+                    solution = bonusGameDetails.solution;
+                    vars.initial = vars.copyGrid(puzzle);
+                    notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+                    vars.resetSelected();
+
+                    playerPointsOnWinNum.textContent = bonusGameDetails.playerPointsOnWin;
+
+                    bonusGameDetails.positions.forEach((p)=> {
+                        const { r, c } = p;
+                        puzzle[r][c] = solution[r][c];
+                    });
+
+                    vars.draw();
+
+                    return;
+                };                
+            };
+        };
+
         const empties = difficultySelect.value*1;
         solution = vars.generateFull();
         puzzle = vars.makePuzzleFromSolution(solution, empties);
@@ -1019,18 +1017,26 @@ var vars = {
         
         vars.resetSelected();
         
-        if (vars.isBonusGame) { // if we get here the bonus game details dont exist, so we need to create them
-            let bonusGameDetails = {
+        if (vars.isBonusGame) { // if we get here the bonus game details for the current difficulty DO NOT exist, so we need to create them
+            let bonusGameDetails = {};
+            bonusGameDetails[vars.currentGameDifficulty] = {
                 puzzle: puzzle,
                 solution: solution,
                 hintsUsed: 0,
                 playerPointsOnWin: vars.getBonusPoints(),
                 positions: [],
-                difficultyOfPuzzle: vars.currentGameDifficulty
+            };
+
+            debugger;
+            // make sure this new code works
+            let key = vars.localStorage.key;
+            let existingDetails = localStorage.getItem(`${key}bonusPuzzle`);
+            if (existingDetails) {
+                existingDetails = JSON.parse(existingDetails);
+                bonusGameDetails = { ...existingDetails, ...bonusGameDetails };
             };
 
             bonusGameDetails = JSON.stringify(bonusGameDetails);
-            let key = vars.localStorage.key;
             localStorage.setItem(`${key}bonusPuzzle`, bonusGameDetails);
         };
 
@@ -1066,6 +1072,7 @@ var vars = {
     },
 
     saveUserEntry: (r, c, n) => {
+        vars.removeUserEntry(r, c); // make sure the entry doesnt already exist
         vars.playerEntryList.push({ r, c, n });
     },
 
