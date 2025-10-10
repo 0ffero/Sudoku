@@ -250,15 +250,18 @@ button {
 
 #loadingScreenContainer {
     transition: 1s;
+
     align-items: center;
     background-color: var(--bg);
     display: flex;
+    font-size: 2em;
     height: 100vh;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     left: 0;
     opacity: 1;
     position: absolute;
+    text-shadow: 0 0 10px var(--white);
     top: 0;
     width: 100vw;
 }

@@ -234,7 +234,7 @@ var vars = {
             };
 
             if (!gTU) {
-                console.log(`User can now click on the bonus game button!`);
+                // console.log(`User can now click on the bonus game button!`);
             };
 
             bonusGameButton.innerHTML = html;
@@ -281,10 +281,11 @@ var vars = {
     selected: { r: -1, c: -1 },
 
     winAnimationRunning: false,
-    winAnimationType: 'ScaleDown', // 'scaleUpScaleDown' or 'scaleDown'
+    winAnimationType: 'ScaleDown', // 'ScaleUpScaleDown' or 'ScaleDown'
 
     init: ()=> {
         console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
+        document.getElementById('versionText').textContent = `Version: ${vars.version}`;
         vars.audio.init();
         vars.localStorage.init();
         vars.initButtonEventListeners();
@@ -295,6 +296,7 @@ var vars = {
             d = d.target;
             vars.updateDifficultyColour(d);
             vars.newPuzzle();
+            vars.bonusGames.drawBonusPips();
         });
 
         if (!vars.pointsUntilNextLevel) {
@@ -319,7 +321,8 @@ var vars = {
 
         vars.bonusGames.drawBonusPips();
 
-        const fw = vars.classFireworks = new Fireworks('fwCanvas', {
+        // initialise the fireworks class
+        vars.classFireworks = new Fireworks('fwCanvas', {
             rocketMinSpeed: 7,
             rocketMaxSpeed: 10,
             gravity: 0.18,
@@ -685,12 +688,12 @@ var vars = {
     },
 
     doWinAnimation: ()=> {
-        let animationType = vars.winAnimationType;
+        let animationType = rnd(['ScaleUpScaleDown','ScaleDown']);
         let entries = vars.playerEntryList;
         let startValue = 43;
         let startDirection = 1;
         let delayMult = 3;
-        if (animationType!=='scaleUpScaleDown') {
+        if (animationType==='ScaleDown') {
             entries.reverse();
             startValue = 83;
             startDirection = -1;
