@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6',
+    version: '1.6.1',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -58,6 +58,9 @@ var vars = {
             if (!localStorage.getItem(ls.key+'colourScheme')) localStorage.setItem(ls.key+'colourScheme', 'default');
             let cs = localStorage.getItem(ls.key+'colourScheme');
             backgroundColourChange(cs);
+
+            if (!localStorage.getItem(ls.key+'playerData')) localStorage.setItem(ls.key+'playerData', JSON.stringify(vars.playerData));
+            vars.playerData = JSON.parse(localStorage.getItem(ls.key+'playerData'));
         },
 
         reset: ()=> {
@@ -77,6 +80,11 @@ var vars = {
         saveColourScheme: (colour)=> {
             const ls = vars.localStorage;
             localStorage.setItem(ls.key+'colourScheme', colour);
+        },
+
+        saveUpdatedPlayerData: ()=> {
+            const ls = vars.localStorage;
+            localStorage.setItem(ls.key+'playerData', JSON.stringify(vars.playerData));
         },
 
         showAllVars: ()=> {
@@ -269,6 +277,11 @@ var vars = {
         }
     },
 
+    playerData: {
+        easy:   { played: 0, won: 0, hints: 0 },
+        medium: { played: 0, won: 0, hints: 0 },
+        hard:   { played: 0, won: 0, hints: 0 }
+    },
     playerLevel: 0,
     playerPoints: 0,
 
@@ -397,6 +410,7 @@ var vars = {
 
         resetBtn.addEventListener('click', () => {
             if (vars.gameWon) return;
+            if (!vars.playerEntryList.length) return;
 
             vars.currentGameDifficulty = difficultySelect.value==='30' ? 'easy' : difficultySelect.value==='40' ? 'medium' : 'hard';
             playerPointsOnWinNum.textContent = difficultySelect.value==='30' ? '50' : difficultySelect.value==='40' ? '100' : '200';
@@ -404,6 +418,7 @@ var vars = {
             puzzle = vars.copyGrid(vars.initial);
             notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
             vars.gameWon = false;
+            vars.updatePlayerData('played', true); // the player is reseting their current game, so reduce the played var and save
             vars.draw();
         });
 
@@ -451,6 +466,7 @@ var vars = {
                     vars.localStorage.updateBonusGamePositions(vars.selected.r, vars.selected.c);
                 };
                 vars.saveUserEntry(vars.selected.r, vars.selected.c, n);
+                vars.playerEntryList.length===1 && vars.updatePlayerData('played'); // players first move, save this to games played
                 vars.checkForWin();
             } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
                 if (vars.initial[vars.selected.r][vars.selected.c] === 0) {
@@ -619,6 +635,7 @@ var vars = {
 
         if (!invalid) {
             vars.gameWon = true;
+            vars.updatePlayerData('win'); // the player has won, so increase the won var and save
             setTimeout(() => {
                 vars.winAnimationRunning = true;
 
@@ -1038,8 +1055,6 @@ var vars = {
                 positions: [],
             };
 
-            debugger;
-            // make sure this new code works
             let key = vars.localStorage.key;
             let existingDetails = localStorage.getItem(`${key}bonusPuzzle`);
             if (existingDetails) {
@@ -1069,6 +1084,7 @@ var vars = {
         if (!vars.isBonusGame) return;
 
         vars.getBonusPoints(remove);
+        vars.updatePlayerData('hint');
 
         vars.localStorage.updateBonusGamePointsForWin();
     },
@@ -1217,6 +1233,29 @@ var vars = {
         } else if (d.value==='30') {
             d.style.backgroundColor = 'rgb(0 140 0)';
         };
+    },
+
+    updatePlayerData: (which, reduce=false) => {
+        let difficulty = vars.currentGameDifficulty;
+        let playerData = vars.playerData;
+        switch (which) {
+            case 'hint':
+                playerData[difficulty].hints++;
+            break;
+            case 'played':
+                !reduce ? (playerData[difficulty].played++) : (playerData[difficulty].played = Clamp(playerData[difficulty].played-1, 0, Infinity));
+            break;
+
+            case 'win':
+                playerData[difficulty].won++;
+            break;
+
+            default:
+                return;
+            break;
+        };
+        
+        vars.localStorage.savePlayerData();
     },
 
     updateWinTextAnimation: ()=> {
