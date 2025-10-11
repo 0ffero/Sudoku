@@ -101,6 +101,55 @@
         <div id="loadingScreenImage"><img src="./images/loadingScreen.png"></div>
         <div id="versionText">Version: </div>
     </div>
+
+    <div id="playerStatsContainer" class="active">
+        <div id="playerStatsInnerContainer">
+            <div id="playerStatsTitle">Player Stats</div>
+            <div id="playerStatsContent">
+                <div class="playerStatRow">
+                    <div class="playerStatLabel"></div>
+                    <div class="playerStatValue">
+                        <div class="statsEasy statLine">Easy</div>
+                        <div class="statsMedium statLine">Medium</div>
+                        <div class="statsHard statLine">Hard</div>
+                    </div>
+                </div>
+                <div class="playerStatRow">
+                    <div class="playerStatLabel">Games played:</div>
+                    <div id="gamesPlayed" class="playerStatValue">
+                        <div class="statsEasy statLine">0</div>
+                        <div class="statsMedium statLine">0</div>
+                        <div class="statsHard statLine">0</div>
+                    </div>
+                </div>
+                <div class="playerStatRow">
+                    <div class="playerStatLabel">Games won:</div>
+                    <div id="gamesWon" class="playerStatValue">
+                        <div class="statsEasy statLine">0</div>
+                        <div class="statsMedium statLine">0</div>
+                        <div class="statsHard statLine">0</div>
+                    </div>
+                </div>
+                <div class="playerStatRow">
+                    <div class="playerStatLabel">Win percentage:</div>
+                    <div id="winPercentage" class="playerStatValue">
+                        <div class="statsEasy statLine">0</div>
+                        <div class="statsMedium statLine">0</div>
+                        <div class="statsHard statLine">0</div>
+                    </div>
+                </div>
+                <div class="playerStatRowAlt" style="margin-top: 40px;">
+                    <div class="playerStatLabel">Total points:</div>
+                    <div id="totalPoints" class="playerStatValue">0</div>
+                </div>
+                <div class="playerStatRowAlt">
+                    <div class="playerStatLabel">Current level:</div>
+                    <div id="currentLevel" class="playerStatValue">0</div>
+                </div>
+            </div>
+            <div id="closePlayerStats">Close</div>
+        </div>
+    </div>
 </body>
 
 </html>

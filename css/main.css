@@ -6,6 +6,7 @@
     --card: #0b201f;
     --cell: #0b201d;
     --muted: #94a3b8;
+    --orange: #ff8c00;
     --red: #ff3030;
     --white: #e6eef6;
 }
@@ -107,6 +108,18 @@ button {
 .btns {
     display: flex;
     gap: 10px;
+}
+
+#closePlayerStats {
+    background: var(--button-bg);
+    border: 1px solid #ffffff06;
+    border-radius: 8px;
+    color: var(--white);
+    cursor: pointer;
+    margin-top: 40px;
+    text-shadow: 2px 2px 2px var(--black);
+    text-align: center;
+    text-transform: uppercase;
 }
 
 .controls {
@@ -264,6 +277,7 @@ button {
     text-shadow: 0 0 10px var(--white);
     top: 0;
     width: 100vw;
+    z-index: 10;
 }
 #loadingScreenContainer.fadeout {
     animation: fadeOut 1s ease-in-out forwards;
@@ -302,6 +316,71 @@ button {
     width: 180px;
 }
 
+.playerStatRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.playerStatRowAlt {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.playerStatValue {
+    display: flex;
+}
+
+#playerStatsContainer {
+    transition: 0.5s;
+    background-color: #000000ee;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height:100vh;
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    visibility: hidden;
+    width: 100vw;
+}
+
+#playerStatsContainer.active {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.5s;
+}
+
+#playerStatsInnerContainer {
+    background: #000000DD;
+    border: 1px solid #ffffff60;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    font-size: 2em;
+    padding: 20px;
+    width: 720px;
+}
+
+#playerStatsTitle {
+    text-align: center;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    font-size: 2em;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--white);
+}
+
+
 .rot90 {
     left: calc(50% + 230px);
     position: absolute;
@@ -324,6 +403,30 @@ button {
 
 .score {
     font-weight: 600;
+}
+
+.statLine {
+    border-bottom: 1px solid #ffffff30;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 150px;
+}
+
+.statsEasy, .statsMedium, .statsHard {
+    
+}
+
+.statsEasy {
+    color: var(--accent);
+}
+
+.statsMedium {
+    color: var(--orange);
+}
+
+.statsHard {
+    color: var(--red);
 }
 
 .twoTimesBonus {

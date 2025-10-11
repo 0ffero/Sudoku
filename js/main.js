@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.1',
+    version: '1.6.3',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -343,6 +343,8 @@ var vars = {
             particleLife: 70,
             spawnInterval: 1000,
         });
+
+        vars.updatePlayerDataUI();
     },
 
     initButtonEventListeners: ()=> {
@@ -367,6 +369,10 @@ var vars = {
             !vars.bad.length && vars.updateCheckButtonText();
 
             vars.draw();
+        });
+
+        closeStatsBtn.addEventListener('click', () => {
+            document.getElementById('playerStatsContainer').classList.remove('active');
         });
 
         document.getElementById('exitCancel').addEventListener('click', () => {
@@ -1255,7 +1261,28 @@ var vars = {
             break;
         };
         
-        vars.localStorage.savePlayerData();
+        vars.localStorage.saveUpdatedPlayerData();
+        vars.updatePlayerDataUI();
+    },
+
+    updatePlayerDataUI: ()=> {
+        let vPD = vars.playerData;
+        for (let difficulty in vPD) {
+            let played = vPD[difficulty]['played'];
+            let winCount = vPD[difficulty]['won'];
+            let percentage = played ? ((winCount/played)*100).toFixed(1) : '0.0';
+            let div = document.querySelector(`#gamesPlayed .stats${difficulty.capitalise()}`);
+            div && (div.innerText = played);
+
+            div = document.querySelector(`#gamesWon .stats${difficulty.capitalise()}`);
+            div && (div.innerText = winCount);
+
+            div = document.querySelector(`#winPercentage .stats${difficulty.capitalise()}`);
+            div && (div.innerText = `${percentage}%`);
+        };
+
+        document.querySelector('#totalPoints').innerText = vars.playerPoints;
+        document.querySelector('#currentLevel').innerText = vars.playerLevel;
     },
 
     updateWinTextAnimation: ()=> {
@@ -1370,6 +1397,7 @@ document.getElementById('colourRed').addEventListener('click', ()=> {
 // get all buttons and drop downs
 let bonusGameButton = document.getElementById('bonusGameButton');
 let checkBtn = document.getElementById('checkBtn');
+let closeStatsBtn = document.getElementById('closePlayerStats');
 let difficultySelect = document.getElementById('difficulty');
 let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');
