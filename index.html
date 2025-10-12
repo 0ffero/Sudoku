@@ -16,6 +16,7 @@
     <script defer src="./js/main.js"></script>
     <script src="./js/LevelAndPointsClass.js"></script>
     <script src="./js/FireworksClass.js"></script>
+    <script src="./js/others/tests.js"></script>
     <link rel="stylesheet" href="./css/fireworks.css">
 </head>
 
@@ -110,6 +111,9 @@
             <div id="playerStatsTitle">Player Stats</div>
             <div id="playerStatsContent">
                 <div class="playerStatRow">
+                    <div id="playerColourAndLevel" class="statLine"></div>
+                </div>
+                <div class="playerStatRow">
                     <div class="playerStatLabel"></div>
                     <div class="playerStatValue">
                         <div class="statsEasy statLine">Easy</div>
@@ -118,7 +122,7 @@
                     </div>
                 </div>
                 <div class="playerStatRow">
-                    <div class="playerStatLabel">Games played:</div>
+                    <div class="playerStatLabel">Games played</div>
                     <div id="gamesPlayed" class="playerStatValue">
                         <div class="statsEasy statLine">0</div>
                         <div class="statsMedium statLine">0</div>
@@ -126,7 +130,7 @@
                     </div>
                 </div>
                 <div class="playerStatRow">
-                    <div class="playerStatLabel">Games won:</div>
+                    <div class="playerStatLabel">Games won</div>
                     <div id="gamesWon" class="playerStatValue">
                         <div class="statsEasy statLine">0</div>
                         <div class="statsMedium statLine">0</div>
@@ -134,7 +138,7 @@
                     </div>
                 </div>
                 <div class="playerStatRow">
-                    <div class="playerStatLabel">Win percentage:</div>
+                    <div class="playerStatLabel">Win percentage</div>
                     <div id="winPercentage" class="playerStatValue">
                         <div class="statsEasy statLine">0</div>
                         <div class="statsMedium statLine">0</div>
@@ -142,7 +146,7 @@
                     </div>
                 </div>
                 <div class="playerStatRow">
-                    <div class="playerStatLabel">Hints Used:</div>
+                    <div class="playerStatLabel">Hints Used</div>
                     <div id="hintsUsed" class="playerStatValue">
                         <div class="statsEasy statLine">0</div>
                         <div class="statsMedium statLine">0</div>
@@ -150,12 +154,12 @@
                     </div>
                 </div>
                 <div class="playerStatRowAlt" style="margin-top: 40px;">
-                    <div class="playerStatLabel">Total points:</div>
-                    <div id="totalPoints" class="playerStatValue statsEasy">0</div>
+                    <div class="playerStatLabel">Total points</div>
+                    <div id="totalPoints" class="playerStatValue statsAccent">0</div>
                 </div>
                 <div class="playerStatRowAlt">
-                    <div class="playerStatLabel">Current level:</div>
-                    <div id="currentLevel" class="playerStatValue statsEasy">0</div>
+                    <div class="playerStatLabel">Current level</div>
+                    <div id="currentLevel" class="playerStatValue statsAccent">0</div>
                 </div>
             </div>
             <div id="closePlayerStats">Close</div>

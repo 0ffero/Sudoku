@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.3',
+    version: '1.6.4',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -334,6 +334,8 @@ var vars = {
 
         vars.bonusGames.drawBonusPips();
 
+        vars.getDiamondStartLevel();
+
         // initialise the fireworks class
         vars.classFireworks = new Fireworks('fwCanvas', {
             rocketMinSpeed: 7,
@@ -345,6 +347,7 @@ var vars = {
         });
 
         vars.updatePlayerDataUI();
+        vars.updatePlayerAndColourUI();
     },
 
     initButtonEventListeners: ()=> {
@@ -646,6 +649,7 @@ var vars = {
         if (!invalid) {
             vars.gameWon = true;
             vars.updatePlayerData('win'); // the player has won, so increase the won var and save
+            vars.updatePlayerAndColourUI(); // update the colour and level
             setTimeout(() => {
                 vars.winAnimationRunning = true;
 
@@ -849,6 +853,27 @@ var vars = {
         return newPoints;
     },
 
+    getColourBandFromPlayerLevel: ()=> {
+        let level = vars.playerLevel;
+        let diamondLevelStart = vars.diamondLevelStart;
+
+        let levelColours = ['BRONZE','SILVER','GOLD','PLATINUM','PEARL','DIAMOND'];
+        
+        let cI = Clamp(level/100|0,0,levelColours.length-1);
+        let colour = levelColours[cI];
+        let cL = Math.ceil(level/10)%10 +1;
+
+        let ext = '';
+        if (diamondLevelStart && level>=diamondLevelStart) {
+            ext = level - diamondLevelStart;
+            ext=Math.floor(ext/100);
+            ext +=1;
+            ext = ` ${ext}`;
+        };
+
+        return { colour: colour+ext, level: cL, playerLevel: level };
+    },
+
     getCurrentBonusLevel: ()=> {
         let bG = vars.bonusGames;
         return !bG.bronze.complete ? 'bronze' : !bG.silver.complete ? 'silver' : !bG.gold.complete ? 'gold' : null;
@@ -856,6 +881,19 @@ var vars = {
 
     getCurrentPointsAsPercentage: ()=> {
         return 100-(vars.pointsUntilNextLevel/vars.pointsUntilNextLevelMax*100)|0;
+    },
+    
+    getDiamondStartLevel: ()=> {
+        let diamondLevelStart = 0;
+        let levelColours = ['BRONZE','SILVER','GOLD','PLATINUM','PEARL','DIAMOND'];
+        for (let level=0; level<=1200; level+=10) {
+            if (diamondLevelStart) break;
+            let cI = Clamp(level/100|0,0,levelColours.length-1);
+            let colour = levelColours[cI];
+            (!diamondLevelStart && colour==='DIAMOND') && (diamondLevelStart = level);
+        };
+
+        vars.diamondLevelStart = diamondLevelStart;
     },
 
     // this runs when "points until next level" reaches 0
@@ -1241,6 +1279,12 @@ var vars = {
         } else if (d.value==='30') {
             d.style.backgroundColor = 'rgb(0 140 0)';
         };
+    },
+
+    updatePlayerAndColourUI: ()=> {
+        let band = vars.getColourBandFromPlayerLevel();
+        document.getElementById('playerColourAndLevel').innerText = `${band.colour} LEVEL ${band.level}`;
+        document.getElementById('playerColourAndLevel').style.backgroundImage = `url("./images/colourLevel_${band.colour}.png")`;
     },
 
     updatePlayerData: (which, reduce=false) => {
