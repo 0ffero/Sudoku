@@ -112,11 +112,15 @@ button {
 }
 
 #closePlayerStats {
+    align-items: center;
     background: var(--button-bg);
     border: 1px solid #ffffff06;
     border-radius: 8px;
     color: var(--white);
     cursor: pointer;
+    display: flex;
+    height: 64px;
+    justify-content: center;
     margin-top: 40px;
     text-shadow: 2px 2px 2px var(--black);
     text-align: center;

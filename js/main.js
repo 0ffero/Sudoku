@@ -64,7 +64,7 @@ var vars = {
         },
 
         reset: ()=> {
-            for (l in localStorage) {
+            for (let l in localStorage) {
                 if (l.startsWith(vars.localStorage.key)) { delete localStorage[l]; console.log(`Deleted ${l}`); };
             };
         },
