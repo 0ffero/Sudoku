@@ -414,6 +414,10 @@ var vars = {
             vars.newPuzzle();
         });
 
+        playerDetailsButton.addEventListener('click', () => {
+            document.getElementById('playerStatsContainer').classList.add('active');
+        });
+
         resetBtn.addEventListener('click', () => {
             if (vars.gameWon) return;
             if (!vars.playerEntryList.length) return;
@@ -1083,14 +1087,12 @@ var vars = {
             case 'hard': remove = 40; break;
         };
         playerPointsOnWinNum.textContent = Math.max(0, (playerPointsOnWinNum.textContent*1)-remove);
-        if (vars.bonusPointsEnabled) {
-            playerPointsOnWin
-        };
+
+        vars.updatePlayerData('hint');
 
         if (!vars.isBonusGame) return;
 
         vars.getBonusPoints(remove);
-        vars.updatePlayerData('hint');
 
         vars.localStorage.updateBonusGamePointsForWin();
     },
@@ -1279,6 +1281,9 @@ var vars = {
 
             div = document.querySelector(`#winPercentage .stats${difficulty.capitalise()}`);
             div && (div.innerText = `${percentage}%`);
+
+            div = document.querySelector(`#hintsUsed .stats${difficulty.capitalise()}`);
+            div && (div.innerText = vPD[difficulty]['hints']);
         };
 
         document.querySelector('#totalPoints').innerText = vars.playerPoints;
@@ -1402,6 +1407,7 @@ let difficultySelect = document.getElementById('difficulty');
 let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');
 let playerPointsOnWinNum = document.getElementById('playerPointsOnWinNum');
+let playerDetailsButton = document.getElementById('playerDetailsButton');
 let resetBtn = document.getElementById('resetBtn');
 let selInfo = document.getElementById('selInfo');
 let solveBtn = document.getElementById('solveBtn');

@@ -83,7 +83,10 @@
     <div class="bonusGame rot270">BONUS GAME</div>
     <div class="bonusGame rot90">BONUS GAME</div>
 
-    <div id="colourSettingsButton"><i class="fa-solid fa-eye"></i></div>
+    <div id="mainButtonsContainer">
+        <div id="playerDetailsButton" class="mainButton"><i class="fa-solid fa-user"></i></div>
+        <div id="colourSettingsButton" class="mainButton"><i class="fa-solid fa-eye"></i></div>
+    </div>
     <div id="colourOptions" class="hidden">
         <div id="colourBlue"    class="colourOption">BLUE</div>
         <div id="colourGreen"   class="colourOption">GREEN</div>
@@ -138,13 +141,21 @@
                         <div class="statsHard statLine">0</div>
                     </div>
                 </div>
+                <div class="playerStatRow">
+                    <div class="playerStatLabel">Hints Used:</div>
+                    <div id="hintsUsed" class="playerStatValue">
+                        <div class="statsEasy statLine">0</div>
+                        <div class="statsMedium statLine">0</div>
+                        <div class="statsHard statLine">0</div>
+                    </div>
+                </div>
                 <div class="playerStatRowAlt" style="margin-top: 40px;">
                     <div class="playerStatLabel">Total points:</div>
-                    <div id="totalPoints" class="playerStatValue">0</div>
+                    <div id="totalPoints" class="playerStatValue statsEasy">0</div>
                 </div>
                 <div class="playerStatRowAlt">
                     <div class="playerStatLabel">Current level:</div>
-                    <div id="currentLevel" class="playerStatValue">0</div>
+                    <div id="currentLevel" class="playerStatValue statsEasy">0</div>
                 </div>
             </div>
             <div id="closePlayerStats">Close</div>
