@@ -348,9 +348,9 @@ button {
 .playerStatRowAlt {
     display: flex;
     flex-direction: row;
-    justify-content: space-evenly;
+    justify-content: space-between;
     margin-bottom: 16px;
-    width: 100%;
+    width: 500px;
 }
 
 .playerStatValue {
@@ -379,6 +379,12 @@ button {
     visibility: visible;
     opacity: 1;
     transition: opacity 0.5s;
+}
+
+#playerStatsContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #playerStatsInnerContainer {
