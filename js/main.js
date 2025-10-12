@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.4',
+    version: '1.6.5',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -1202,7 +1202,8 @@ var vars = {
 
     startAddingScore: ()=> {
         if (!vars.pointsToCount) {
-            vars.audio.stop('pointsIncrease')
+            vars.audio.stop('pointsIncrease');
+            vars.updatePlayerDataUI();
             return;
         };
 
@@ -1359,43 +1360,43 @@ function backgroundColourChange(which) {
     let accent = '';
     switch (which) {
         case 'blue':
-            bg = 'linear-gradient(rgb(2 69 83) 0%, rgb(3 11 20) 100%)';
+            bg = '#0f1724';
             buttonBG = '#306e91'
             accent = vars.textColour = '#30a2ff'
         break;
 
         case 'green':
-            bg = 'linear-gradient(180deg, var(--card), var(--bg))';
+            bg = '#0f2423';
             buttonBG = '#359130'
             accent = vars.textColour = '#06d474'
         break;
 
         case 'orange':
-            bg = 'linear-gradient(#5d3e00 0%, #311709 100%)';
+            bg = '#24190f';
             buttonBG = '#a66e00'
             accent = vars.textColour = '#ffb930'
         break;
 
         case 'red':
-            bg = 'linear-gradient(#3f0e0b, #240f0f)';
+            bg = '#240f0f';
             buttonBG = '#5b1a1a'
             accent = vars.textColour = '#ff3030'
         break;
 
         case 'pink':
-            bg = 'linear-gradient(rgb(115 35 66) 0%, rgb(32, 11, 23) 100%)';
+            bg = '#704777';
             buttonBG = '#a8325c'
             accent = vars.textColour = '#ff30a2'
         break;
 
         case 'purple':
-            bg = 'linear-gradient(180deg, #1a0b20, #240b24)';
+            bg = '#200f24';
             buttonBG = '#532171'
             accent = vars.textColour = '#d130ff'
         break;
 
         default:
-            bg = 'linear-gradient(180deg, var(--card), var(--bg))';
+            bg = '#0f2423';
             buttonBG = '#359130'
             accent = vars.textColour= '#06d474'
         break;
@@ -1405,11 +1406,12 @@ function backgroundColourChange(which) {
     if (which==='default') which = 'green'; // default is green
     document.getElementById(`colour${which.charAt(0).toUpperCase()+which.slice(1)}`).classList.add('selectedColour');
 
-    let mC = document.getElementById('mainContainer');
-    mC.style.background = bg;
     canvas.style.background = bg;
+    let mC = document.getElementById('mainContainer');
+    mC.style.backgroundColor = bg;
 
     const root = document.documentElement;
+    root.style.setProperty('--bg', bg);
     root.style.setProperty('--button-bg', buttonBG);
     root.style.setProperty('--accent', accent);
 

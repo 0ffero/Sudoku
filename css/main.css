@@ -295,7 +295,8 @@ button {
 }
 
 #mainContainer {
-    background: linear-gradient(180deg, var(--bg) 0%, var(--card) 100%);
+    background: url(../images/bgTexture.jpg);
+    background-blend-mode: multiply;
     display: flex;
     flex-direction: column;
     height: 100vh;
