@@ -12,6 +12,28 @@
     --white: #e6eef6;
 }
 
+/* ANIMATIONS */
+@keyframes scaleDown {
+    from {
+        transform: scale(2);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+.scale-animation {
+    animation: scaleDown 0.5s ease-in forwards;
+}
+@keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    10%, 30%, 50%, 70%, 90% { transform: translate(-5px, -5px); }
+    20%, 40%, 60%, 80% { transform: translate(5px, 5px); }
+}
+.shake-animation {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+/* END OF ANIMATIONS */
+
 html,
 body {
     color: var(--white);

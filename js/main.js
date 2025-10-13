@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.5',
+    version: '1.6.6',
 
     currentGameDifficulty: '',
     DEBUG: false,
@@ -112,6 +112,27 @@ var vars = {
 
             bonusGameDetails[vars.currentGameDifficulty].positions.push({r,c});
             localStorage.setItem(`${key}bonusPuzzle`, JSON.stringify(bonusGameDetails));
+        }
+    },
+
+    animate: {
+        showNewLevel: false,
+
+        colourAndLevelUp: ()=> {
+            vars.animate.showNewLevel = false; // reset the var
+
+            !document.querySelector('#playerStatsContainer.active') && document.querySelector('#playerStatsContainer').classList.add('active'); // show the player data if it isnt visible
+
+            let div = document.getElementById('playerColourAndLevel');
+            div.classList.add('scale-animation');
+            setTimeout(()=> {
+                div.classList.remove('scale-animation');
+                div = document.getElementById('playerStatsInnerContainer');
+                div.classList.add('shake-animation');
+                setTimeout(()=> {
+                    div.classList.remove('shake-animation');
+                }, 510);
+            }, 510);
         }
     },
 
@@ -260,6 +281,8 @@ var vars = {
 
     cheats: {
         SolveBarOne: ()=> {
+            vars.updatePlayerData('played'); // add one to the played counter
+
             let fillCount = puzzle.flat(1).filter(i=>!i).length-1;
 
             puzzle.forEach((r,rI)=> {
@@ -1209,7 +1232,7 @@ var vars = {
 
         vars.audio.play('pointsIncrease');
 
-        let remove = 1; (vars.pointsToCount+100)/100|0;
+        let remove = 1; //(vars.pointsToCount+100)/100|0;
         vars.pointsToCount-=remove;
         vars.playerPoints+=remove;
         vars.pointsUntilNextLevel-=remove;
@@ -1240,6 +1263,11 @@ var vars = {
             localStorage.setItem(key+'points', vars.playerPoints);
             localStorage.setItem(key+'pointsUntilNextLevel', vars.pointsUntilNextLevel);
             localStorage.setItem(key+'pointsUntilNextLevelMax', vars.pointsUntilNextLevelMax);
+
+            // show the player data container if the players level or colour has changed
+            if (!vars.animate.showNewLevel) return;
+
+            vars.animate.colourAndLevelUp();
         };
 
         setTimeout(()=> {
@@ -1284,8 +1312,14 @@ var vars = {
 
     updatePlayerAndColourUI: ()=> {
         let band = vars.getColourBandFromPlayerLevel();
-        document.getElementById('playerColourAndLevel').innerText = `${band.colour} LEVEL ${band.level}`;
-        document.getElementById('playerColourAndLevel').style.backgroundImage = `url("./images/colourLevel_${band.colour}.png")`;
+        let newText = `${band.colour} LEVEL ${band.level}`;
+        let div = document.getElementById('playerColourAndLevel');
+        if (div.innerHTML===newText) return; // no change
+
+        // if we get here, there is a level/colour change
+        div.innerHTML!=='' && (vars.animate.showNewLevel = true);
+        div.innerHTML = newText;
+        div.style.backgroundImage = `url("./images/colourLevel_${band.colour}.png")`;
     },
 
     updatePlayerData: (which, reduce=false) => {
@@ -1294,13 +1328,16 @@ var vars = {
         switch (which) {
             case 'hint':
                 playerData[difficulty].hints++;
+                console.log(`Hint used. Total hints for ${difficulty}: ${playerData[difficulty].hints}`);
             break;
             case 'played':
                 !reduce ? (playerData[difficulty].played++) : (playerData[difficulty].played = Clamp(playerData[difficulty].played-1, 0, Infinity));
+                console.log(`Game played. Total games for ${difficulty}: ${playerData[difficulty].played}`);
             break;
 
             case 'win':
                 playerData[difficulty].won++;
+                console.log(`Game won. Total wins for ${difficulty}: ${playerData[difficulty].won}`);
             break;
 
             default:
