@@ -86,6 +86,28 @@ button {
 
 
 
+
+.bgImageOption {
+    background-size: contain;
+    height: 100px;
+    width: 100px;
+}
+
+#bgImageOptions {
+    background-color: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 565px;
+    padding: 30px;
+    position: absolute;
+    right: 10px;
+    top: 60px;
+    z-index: 100;
+}
+
 .bonusGame {
     color: var(--accent);
     font-size: 3em;
@@ -317,7 +339,6 @@ button {
 }
 
 #mainContainer {
-    background: url(../images/bgTexture.jpg);
     background-blend-mode: multiply;
     display: flex;
     flex-direction: column;
@@ -492,6 +513,7 @@ button {
 
 .wrap {
     background: #ffffff03;
+    border: 1px solid #ffffff40;
     border-radius: 12px;
     box-shadow: 0 6px 30px rgba(2, 6, 23, 0.6);
     flex-direction: column;

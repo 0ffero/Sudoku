@@ -3,8 +3,9 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.6',
+    version: '1.6.7',
 
+    backgroundImage: 'bgTexture1', // default background image
     currentGameDifficulty: '',
     DEBUG: false,
     textColour: '#06d474',
@@ -61,12 +62,20 @@ var vars = {
 
             if (!localStorage.getItem(ls.key+'playerData')) localStorage.setItem(ls.key+'playerData', JSON.stringify(vars.playerData));
             vars.playerData = JSON.parse(localStorage.getItem(ls.key+'playerData'));
+
+            if (!localStorage.getItem(ls.key+'backgroundImage')) localStorage.setItem(ls.key+'backgroundImage', vars.backgroundImage);
+            vars.backgroundImage = localStorage.getItem(ls.key+'backgroundImage');
         },
 
         reset: ()=> {
             for (let l in localStorage) {
                 if (l.startsWith(vars.localStorage.key)) { delete localStorage[l]; console.log(`Deleted ${l}`); };
             };
+        },
+
+        saveBGImage: ()=> {
+            const ls = vars.localStorage;
+            localStorage.setItem(ls.key+'backgroundImage', vars.backgroundImage);
         },
         
         saveBonusDetails: ()=> {
@@ -300,6 +309,54 @@ var vars = {
         }
     },
 
+    images: {
+        bgFiles: [
+            { name: '', file: './images/backgrounds/bgTexture1.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture2.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture3.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture4.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture5.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture6.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture7.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture8.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture9.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture10.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture11.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture12.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture13.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture14.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture15.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture16.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture17.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture18.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture19.jpg', loaded: false },
+            { name: '', file: './images/backgrounds/bgTexture20.jpg', loaded: false }
+        ],
+
+        init: ()=> {
+            let iV = vars.images;
+            let bgFiles = iV.bgFiles;
+            let bgImageOptions = document.getElementById('bgImageOptions');
+            bgFiles.forEach((b,i)=> {
+                let img = new Image();
+                img.src = b.file;
+                b.name = b.file.split('/').pop().split('.').shift();
+                let div = document.createElement('div');
+                div.classList.add('bgImageOption');
+                div.style.backgroundImage = `url(${b.file})`;
+                div.addEventListener('click', ()=> {
+                    vars.backgroundImage = b.name;
+                    setBackgroundImage();
+                });
+                bgImageOptions.appendChild(div);
+
+                img.onload = ()=> {
+                    b.loaded = true;
+                };
+            });
+        }
+    },
+
     playerData: {
         easy:   { played: 0, won: 0, hints: 0 },
         medium: { played: 0, won: 0, hints: 0 },
@@ -323,6 +380,7 @@ var vars = {
         console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
         document.getElementById('versionText').textContent = `Version: ${vars.version}`;
         vars.audio.init();
+        vars.images.init();
         vars.localStorage.init();
         vars.initButtonEventListeners();
         vars.initKeyboardEventListeners();
@@ -371,9 +429,15 @@ var vars = {
 
         vars.updatePlayerDataUI();
         vars.updatePlayerAndColourUI();
+
+        vars.setBackgroundImage();
     },
 
     initButtonEventListeners: ()=> {
+        backgroundImagesButton.addEventListener('click', () => {
+            vars.switchBGOptionsVisibility();
+        });
+
         bonusGameButton.addEventListener('click', () => {
             if (!document.querySelector('#bonusGameButton.active')) return;
 
@@ -584,6 +648,7 @@ var vars = {
                 case 'mainWrapper': case 'mainContainer':
                     vars.resetSelected();
                     vars.showColourOptions(false);
+                    vars.showBGImageOptions(false);
                     vars.draw();
                 break;
             };
@@ -1172,6 +1237,11 @@ var vars = {
         vars.playerEntryList.push({ r, c, n });
     },
 
+    setBackgroundImage: ()=> {
+        let bg = vars.backgroundImage;
+        document.getElementById('mainContainer').style.backgroundImage = `url('./images/backgrounds/${bg}.jpg')`;
+    },
+
     setBonusEndDate: ()=> {
         vars.bonusPointsEnabledUntil = new Date();
         vars.bonusPointsEnabledUntil.setDate(vars.bonusPointsEnabledUntil.getDate() + 7);
@@ -1180,6 +1250,11 @@ var vars = {
         let key = vars.localStorage.key;
         localStorage.setItem(key+'bonusPointsEnabledUntil', vars.bonusPointsEnabledUntil);
         localStorage.setItem(key+'bonusPointsEnabled', 'true');
+    },
+
+    showBGImageOptions: (show=true)=> {
+        let div = document.getElementById('bgImageOptions');
+        show ? div.classList.remove('hidden') : div.classList.add('hidden');
     },
 
     showBonusMessages: (show=true)=> {
@@ -1273,6 +1348,10 @@ var vars = {
         setTimeout(()=> {
             vars.startAddingScore();
         }, 1000/60);
+    },
+
+    switchBGOptionsVisibility: ()=> {
+        document.getElementById('bgImageOptions').classList.toggle('hidden');
     },
 
     switchColourOptionsVisibility: ()=> {
@@ -1481,8 +1560,16 @@ document.getElementById('colourRed').addEventListener('click', ()=> {
     backgroundColourChange('red');
 });
 
+function setBackgroundImage() {
+    let container = document.getElementById('mainContainer');
+    container.style.backgroundImage = `url('./images/backgrounds/${vars.backgroundImage}.jpg')`;
+
+    vars.localStorage.saveBGImage();
+};
+
 
 // get all buttons and drop downs
+let backgroundImagesButton = document.getElementById('backgroundImagesButton');
 let bonusGameButton = document.getElementById('bonusGameButton');
 let checkBtn = document.getElementById('checkBtn');
 let closeStatsBtn = document.getElementById('closePlayerStats');
