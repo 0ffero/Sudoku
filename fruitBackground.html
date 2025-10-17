@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rotating Images Field</title>
+  <script src="./js/ImageFieldClass.js"></script>
+  <script src="./js/miscFunctions_v3.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #222;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="imageFieldCanvas"></canvas>
+</body>
+<script>
+let vars = {
+    imageOptions: ['food','fruits','leaves_n_flowers','sweets'],
+    classes: {
+        ImageField: null
+    }
+};
+let selected = rnd(vars.imageOptions);
+
+const canvas = document.getElementById("imageFieldCanvas");
+let spriteData = {
+    imageSrc: `./images/backgroundPieces/${selected}_x84.png`,
+    spriteSizeW: 84, // in px
+    bgTint: '#ff800080'
+};
+vars.classes.ImageField = new ImageField(canvas, `./images/backgroundPieces/${selected}_x84.png`, spriteData);
+</script>
+</html>

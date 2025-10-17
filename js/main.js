@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.6.7',
+    version: '1.7',
 
     backgroundImage: 'bgTexture1', // default background image
     currentGameDifficulty: '',
@@ -65,12 +65,21 @@ var vars = {
 
             if (!localStorage.getItem(ls.key+'backgroundImage')) localStorage.setItem(ls.key+'backgroundImage', vars.backgroundImage);
             vars.backgroundImage = localStorage.getItem(ls.key+'backgroundImage');
+
+            if (!localStorage.getItem(ls.key+'animatedBackgroundIndex')) localStorage.setItem(ls.key+'animatedBackgroundIndex', '0');
+            vars.animatedBackgroundSelectedIndex = localStorage.getItem(ls.key+'animatedBackgroundIndex')*1;
         },
 
         reset: ()=> {
             for (let l in localStorage) {
                 if (l.startsWith(vars.localStorage.key)) { delete localStorage[l]; console.log(`Deleted ${l}`); };
             };
+        },
+
+        saveAnimatedBackgroundIndex: ()=> {
+            let index = vars.animatedBackgroundSelectedIndex;
+            const ls = vars.localStorage;
+            localStorage.setItem(ls.key+'animatedBackgroundIndex', index);
         },
 
         saveBGImage: ()=> {
@@ -107,7 +116,6 @@ var vars = {
             let bonusGameDetails = JSON.parse(localStorage.getItem(`${key}bonusPuzzle`));
             if (!bonusGameDetails) return; // no bonus game in progress
 
-            debugger;
             bonusGameDetails[vars.currentGameDifficulty].playerPointsOnWin = playerPointsOnWinNum.textContent*1;
             bonusGameDetails[vars.currentGameDifficulty].hintsUsed = bonusGameDetails[vars.currentGameDifficulty].hintsUsed*1 + 1;
 
@@ -144,6 +152,9 @@ var vars = {
             }, 510);
         }
     },
+
+    animatedBackgroundOptions: ['food','fruits','leaves_n_flowers','sweets'],
+    animatedBackgroundSelectedIndex: 0,
 
     audio: {
         loadedFiles: {},
@@ -345,14 +356,38 @@ var vars = {
                 div.classList.add('bgImageOption');
                 div.style.backgroundImage = `url(${b.file})`;
                 div.addEventListener('click', ()=> {
+                    vars.DEBUG && console.log(`User selected background image: ${b.name}`);
+                    vars.switchToAnimatedWallpaper(false);
                     vars.backgroundImage = b.name;
-                    setBackgroundImage();
+                    vars.setBackgroundImage();
                 });
                 bgImageOptions.appendChild(div);
 
                 img.onload = ()=> {
                     b.loaded = true;
                 };
+            });
+
+            // add the 4 animated wallpaper options
+            vars.animatedBackgroundOptions.forEach((b,i)=> {
+                let div = document.createElement('div');
+                div.classList.add('bgImageOptionAnimated');
+                div.style.backgroundImage = `url(./images/animatedBGicon.png)`;
+                div.innerText = b.replaceAll('_',' ').toUpperCase();
+                div.addEventListener('click', ()=> {
+                    let selected = vars.animatedBackgroundOptions[i];
+                    vars.DEBUG && console.log(`User selected animated background image: ${selected}`);
+                    vars.setBackgroundImage(true); // clear the static background image
+                    if (i === vars.animatedBackgroundSelectedIndex) { // we just need to show it
+                        vars.switchToAnimatedWallpaper(true);
+                        return; // already selected
+                    };
+                    
+                    vars.animatedBackgroundSelectedIndex = i;
+                    vars.localStorage.saveAnimatedBackgroundIndex();
+                    vars.switchToAnimatedWallpaper(true,true); // swap the image and show
+                });
+                bgImageOptions.appendChild(div);
             });
         }
     },
@@ -430,7 +465,29 @@ var vars = {
         vars.updatePlayerDataUI();
         vars.updatePlayerAndColourUI();
 
-        vars.setBackgroundImage();
+        vars.backgroundImage!=='none' && vars.setBackgroundImage();
+
+        vars.initAnimatedWallpaperClass();
+    },
+
+    initAnimatedWallpaperClass: ()=> {
+        let selected = vars.animatedBackgroundOptions[vars.animatedBackgroundSelectedIndex];
+
+        const canvas = document.getElementById("imageFieldCanvas");
+        let tint = `${vars.bgTint}80` || '#ff800080';
+        let spriteData = {
+            imageSrc: `./images/backgroundPieces/${selected}_x84.png`,
+            spriteSizeW: 84, // in px
+            bgTint: tint
+        };
+
+        vars.ImageFieldClass = new ImageField(canvas, spriteData);
+        if (vars.backgroundImage!=='none') {
+            vars.ImageFieldClass.stop(); // stop the animation until the user enables it by selecting an animated wallpaper option
+            return;
+        };
+
+        vars.switchToAnimatedWallpaper(true);
     },
 
     initButtonEventListeners: ()=> {
@@ -1237,9 +1294,14 @@ var vars = {
         vars.playerEntryList.push({ r, c, n });
     },
 
-    setBackgroundImage: ()=> {
+    setBackgroundImage: (clear=false)=> {
         let bg = vars.backgroundImage;
-        document.getElementById('mainContainer').style.backgroundImage = `url('./images/backgrounds/${bg}.jpg')`;
+        let div = document.getElementById('mainContainer');
+        div.style.backgroundImage = clear || bg==='none' ? 'none' : `url('./images/backgrounds/${bg}.jpg')`;
+
+        clear && (vars.backgroundImage = 'none');
+
+        vars.localStorage.saveBGImage();
     },
 
     setBonusEndDate: ()=> {
@@ -1250,6 +1312,24 @@ var vars = {
         let key = vars.localStorage.key;
         localStorage.setItem(key+'bonusPointsEnabledUntil', vars.bonusPointsEnabledUntil);
         localStorage.setItem(key+'bonusPointsEnabled', 'true');
+    },
+
+    showAnimatedWallpaper: (show=true, changeImage=false)=> {
+        let ImageFieldClass = vars.ImageFieldClass;
+        let div = document.getElementById('animatedWallpaperContainer');
+        if (!show) { // we are hiding the animated wallpaper
+            div.classList.remove('active');
+            ImageFieldClass.stop();
+            return;
+        };
+
+        div.classList.add('active');
+        // get the animated wallpaper
+        let aWType = vars.animatedBackgroundOptions[vars.animatedBackgroundSelectedIndex];
+
+        let imageName = `./images/backgroundPieces/${aWType}_x84.png`;
+        changeImage && ImageFieldClass._changeImage(imageName, 84);
+        ImageFieldClass.animate();
     },
 
     showBGImageOptions: (show=true)=> {
@@ -1356,6 +1436,11 @@ var vars = {
 
     switchColourOptionsVisibility: ()=> {
         document.getElementById('colourOptions').classList.toggle('hidden');
+    },
+
+    switchToAnimatedWallpaper: (enable=true, changeImage=false)=> {
+        enable && vars.setBackgroundImage(enable);
+        vars.showAnimatedWallpaper(enable, changeImage);
     },
 
     undoLastMove: ()=> {
@@ -1518,6 +1603,8 @@ function backgroundColourChange(which) {
         break;
     };
 
+    vars.bgTint = bg;
+
     backgroundColourRemoveSelected();
     if (which==='default') which = 'green'; // default is green
     document.getElementById(`colour${which.charAt(0).toUpperCase()+which.slice(1)}`).classList.add('selectedColour');
@@ -1559,13 +1646,6 @@ document.getElementById('colourPurple').addEventListener('click', ()=> {
 document.getElementById('colourRed').addEventListener('click', ()=> {
     backgroundColourChange('red');
 });
-
-function setBackgroundImage() {
-    let container = document.getElementById('mainContainer');
-    container.style.backgroundImage = `url('./images/backgrounds/${vars.backgroundImage}.jpg')`;
-
-    vars.localStorage.saveBGImage();
-};
 
 
 // get all buttons and drop downs

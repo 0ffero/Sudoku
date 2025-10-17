@@ -89,7 +89,20 @@ button {
 
 .bgImageOption {
     background-size: contain;
+    cursor: pointer;
     height: 100px;
+    width: 100px;
+}
+
+.bgImageOptionAnimated {
+    align-items: flex-end;
+    background-color: var(--white);
+    color: var(--accent);
+    cursor: pointer;
+    display: flex;
+    font-size: 0.65em;
+    height: 100px;
+    justify-content: center;
     width: 100px;
 }
 
@@ -106,6 +119,15 @@ button {
     right: 10px;
     top: 60px;
     z-index: 100;
+}
+
+.bgPattern {
+    position: absolute;
+    z-index: 3;
+}
+
+#board {
+    z-index: 5;
 }
 
 .bonusGame {
@@ -417,6 +439,7 @@ button {
     top: 0;
     visibility: hidden;
     width: 100vw;
+    z-index: 7;
 }
 
 #playerStatsContainer.active {
@@ -512,7 +535,7 @@ button {
 }
 
 .wrap {
-    background: #ffffff03;
+    background: #00000040;;
     border: 1px solid #ffffff40;
     border-radius: 12px;
     box-shadow: 0 6px 30px rgba(2, 6, 23, 0.6);
@@ -520,4 +543,6 @@ button {
     margin: 28px auto;
     max-width: 980px;
     padding: 20px;
+    position: relative;
+    z-index: 5;
 }
