@@ -9,7 +9,7 @@
     --orange: #ff8c00;
     --red: #ff3030;
     --stat-easy: #06d474;
-    --white: #e6eef6;
+    --white: #ededed;
 }
 
 /* ANIMATIONS */
@@ -96,14 +96,17 @@ button {
 
 .bgImageOptionAnimated {
     align-items: flex-end;
-    background-color: var(--white);
+    background-color: var(--button-bg);
+    border: 1px solid var(--accent);
     color: var(--accent);
     cursor: pointer;
     display: flex;
-    font-size: 0.65em;
-    height: 100px;
+    font-size: 0.6em;
+    font-weight: bold;
+    height: 88px;
     justify-content: center;
-    width: 100px;
+    padding-bottom: 10px;
+    width: 98px;
 }
 
 #bgImageOptions {

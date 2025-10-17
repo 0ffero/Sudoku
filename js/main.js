@@ -1419,6 +1419,8 @@ var vars = {
             localStorage.setItem(key+'pointsUntilNextLevel', vars.pointsUntilNextLevel);
             localStorage.setItem(key+'pointsUntilNextLevelMax', vars.pointsUntilNextLevelMax);
 
+            vars.updatePlayerDataUI();
+
             // show the player data container if the players level or colour has changed
             if (!vars.animate.showNewLevel) return;
 
