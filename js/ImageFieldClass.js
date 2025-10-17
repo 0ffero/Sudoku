@@ -104,6 +104,18 @@ class ImageField {
     }
 
     animate() {
+        if (this.lastFrameTime) {
+            const now = performance.now();
+            const elapsed = now - this.lastFrameTime;
+            if (elapsed < 16.67) { // 1000ms / 60fps ≈ 16.67ms per frame
+                this.animationFrame = requestAnimationFrame(() => this.animate());
+                return;
+            }
+            this.lastFrameTime = now;
+        } else {
+            this.lastFrameTime = performance.now();
+        };
+
         this.animationFrame = requestAnimationFrame(() => this.animate());
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

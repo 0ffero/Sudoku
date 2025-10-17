@@ -159,7 +159,7 @@ var vars = {
     audio: {
         loadedFiles: {},
         init: ()=> {
-            ['gainLevel','pointsIncrease'].forEach((f)=> {
+            ['cheatsEnabled','gainLevel','pointsIncrease'].forEach((f)=> {
                 let a = new Audio(`./audio/${f}.ogg`);
                 f==='pointsIncrease' && (a.loop = true);
                 a.load();
