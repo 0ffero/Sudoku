@@ -153,7 +153,7 @@ var vars = {
         }
     },
 
-    animatedBackgroundOptions: ['food','fruits','leaves_n_flowers','sweets'],
+    animatedBackgroundOptions: ['animals','food','fruits','leaves_n_flowers','sweets'],
     animatedBackgroundSelectedIndex: 0,
 
     audio: {
