@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.7',
+    version: '1.8',
 
     backgroundImage: 'bgTexture1', // default background image
     currentGameDifficulty: '',
@@ -468,6 +468,9 @@ var vars = {
         vars.backgroundImage!=='none' && vars.setBackgroundImage();
 
         vars.initAnimatedWallpaperClass();
+
+        // initialise the help page to page 0
+        vars.help.showPage(0);
     },
 
     initAnimatedWallpaperClass: ()=> {
@@ -492,6 +495,7 @@ var vars = {
 
     initButtonEventListeners: ()=> {
         backgroundImagesButton.addEventListener('click', () => {
+            vars.hideAllOptionContainers();
             vars.switchBGOptionsVisibility();
         });
 
@@ -522,6 +526,11 @@ var vars = {
             document.getElementById('playerStatsContainer').classList.remove('active');
         });
 
+        colourSettingsButton.addEventListener('click', ()=> {
+            vars.hideAllOptionContainers();
+            vars.switchColourOptionsVisibility();
+        });
+
         document.getElementById('exitCancel').addEventListener('click', () => {
             document.getElementById('exitBonusGameContainer').classList.remove('active');
         });
@@ -541,6 +550,11 @@ var vars = {
             vars.showBonusMessages(false);
 
             vars.newPuzzle();
+        });
+
+        helpButton.addEventListener('click', ()=> {
+            vars.hideAllOptionContainers();
+            vars.showHelpContainer(true);
         });
 
         // the hint button has an override for right click. that event listener is in initMouseEventListeners()
@@ -1158,6 +1172,31 @@ var vars = {
         vars.draw();
     },
 
+    help: {
+        hideAll: ()=> {
+            document.querySelectorAll('.helpPage').forEach(d=>(d.style.transform = 'translateX(100vw)', d.style.display = 'none'));
+        },
+
+        showPage: (pageId)=> {
+            vars.help.hideAll();
+            let div = document.querySelector(`div[data-help-page="${pageId}"]`);
+            div.style.display = 'flex';
+            setTimeout(()=> {
+                div.style.transition = '333ms';
+                div.style.transform = 'translateX(0)';
+            },0);
+
+            document.querySelectorAll(`div[data-help-show]`).forEach(d=>d.classList.remove('helpButtonSelected')); // remove all selected classes
+            let buttonDiv = document.querySelector(`div[data-help-show="${pageId}"]`);  // find the button that opened this page
+            buttonDiv.classList.add('helpButtonSelected');                              // and highlight it
+        }
+    },
+
+    hideAllOptionContainers: ()=> {
+        vars.showColourOptions(false);
+        vars.showBGImageOptions(false);
+    },
+
     hideLoadingScreen: ()=> {
         let container = document.getElementById('loadingScreenContainer');
         container.classList.add('fadeout');
@@ -1376,6 +1415,11 @@ var vars = {
         setTimeout(()=> {
             div.classList.remove('show');
         }, 3500);
+    },
+
+    showHelpContainer: (show=true)=> {
+        let container = document.getElementById('helpContainer');
+        show ? container.classList.add('active') : container.classList.remove('active');
     },
 
     startAddingScore: ()=> {
@@ -1627,9 +1671,6 @@ function backgroundColourChange(which) {
 function backgroundColourRemoveSelected() {
     document.querySelector('.selectedColour')?.classList.remove('selectedColour');
 };
-document.getElementById('colourSettingsButton').addEventListener('click', ()=> {
-    vars.switchColourOptionsVisibility();
-});
 document.getElementById('colourBlue').addEventListener('click', (e)=> {
     backgroundColourChange('blue');
 });
@@ -1655,7 +1696,9 @@ let backgroundImagesButton = document.getElementById('backgroundImagesButton');
 let bonusGameButton = document.getElementById('bonusGameButton');
 let checkBtn = document.getElementById('checkBtn');
 let closeStatsBtn = document.getElementById('closePlayerStats');
+let colourSettingsButton = document.getElementById('colourSettingsButton');
 let difficultySelect = document.getElementById('difficulty');
+let helpButton = document.getElementById('helpButton');
 let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');
 let playerPointsOnWinNum = document.getElementById('playerPointsOnWinNum');

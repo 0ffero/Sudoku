@@ -17,7 +17,10 @@
     <script src="./js/LevelAndPointsClass.js"></script>
     <script src="./js/FireworksClass.js"></script>
     <script src="./js/ImageFieldClass.js"></script>
+    <script defer src="./js/PositionedImageClass.js"></script>
+
     <script src="./js/others/tests.js"></script>
+
     <link rel="stylesheet" href="./css/fireworks.css">
     <link rel="stylesheet" href="./css/imageFieldClass.css">
 </head>
@@ -66,10 +69,18 @@
                     <button id="solveBtn">Show solution</button>
                 </div>
             </div>
-
-            <div class="kbd-hint">Controls: click a cell or use arrow keys, type 1–9 to fill, Backspace/Delete to clear. Press "Hint" to fill a correct number in a random empty cell.</div>
         </div>
     </div>
+
+    <div id="mainButtonsContainer">
+        <div id="playerDetailsButton" class="mainButton" title="Player Details"><i class="fa-solid fa-user"></i></div>
+        <div id="backgroundImagesButton" class="mainButton" title="Background Images"><i class="fa-solid fa-image"></i></div>
+        <div id="colourSettingsButton" class="mainButton" title="Colour Scheme"><i class="fa-solid fa-eye"></i></div>
+        <div id="helpButton" class="mainButton" title="HELP"><i class="fa-regular fa-circle-question"></i></div>
+    </div>
+
+    <div class="bonusGame rot270">BONUS GAME</div>
+    <div class="bonusGame rot90">BONUS GAME</div>
 
     <div id="exitBonusGameContainer">
         <div id="exitBonusGameInnerContainer">
@@ -83,9 +94,6 @@
 
     <div id="floatingPoints">+200 points</div>
 
-    <div class="bonusGame rot270">BONUS GAME</div>
-    <div class="bonusGame rot90">BONUS GAME</div>
-
     <div id="fireworksContainer">
         <canvas id="fwCanvas"></canvas>
     </div>
@@ -93,12 +101,6 @@
     <div id="loadingScreenContainer">
         <div id="loadingScreenImage"><img src="./images/loadingScreen.png"></div>
         <div id="versionText">Version: </div>
-    </div>
-
-    <div id="mainButtonsContainer">
-        <div id="playerDetailsButton" class="mainButton" title="Player Details"><i class="fa-solid fa-user"></i></div>
-        <div id="backgroundImagesButton" class="mainButton" title="Background Images"><i class="fa-solid fa-image"></i></div>
-        <div id="colourSettingsButton" class="mainButton" title="Colour Scheme"><i class="fa-solid fa-eye"></i></div>
     </div>
     <div id="colourOptions" class="hidden">
         <div id="colourBlue"    class="colourOption">BLUE</div>
@@ -171,6 +173,31 @@
 
     <div id="animatedWallpaperContainer">
         <canvas id="imageFieldCanvas"></canvas>
+    </div>
+
+    <div id="helpContainer">
+        <div id="helpInnerContainer">
+            <div id="helpButtons">
+                <div class="helpButton" data-help-show="0" onclick="vars.help.showPage(0)">INPUT</div>
+                <div class="helpButton" data-help-show="1" onclick="vars.help.showPage(1)">EXAMPLE</div>
+                <div class="helpButton" data-help-show="2" onclick="vars.help.showPage(2)">ADDING NOTES</div>
+                <div class="helpButton" data-help-show="3" onclick="vars.help.showPage(3)">HINT SYSTEM</div>
+                <div class="helpButton closeHelpButton"    onclick="vars.showHelpContainer(false)">CLOSE</div>
+            </div>
+            <div class="helpPage" data-help-page="0">
+                <div><img src="./images/help/help_keys.png"></div>
+            </div>
+
+            <div class="helpPage" data-help-page="1"><img src="./images/help/help_example_on_how_to_solve.png"></div>
+            <div class="helpPage" data-help-page="2"><img src="./images/help/help_adding_notes.png"></div>
+            <div class="helpPage" data-help-page="3">
+                <div id="helpSystemTitle">Hint System</div>
+                <div class="helpSystemParagraph">Stuck?<br/>The hints system allows you to specify a cell position to uncover, or to uncover a randomly selected cell.</div>
+                <div class="helpSystemParagraph">If the selected cell is empty, it will be uncovered.</div>
+                <div class="helpSystemParagraph">If there is<br/>&nbsp;&nbsp;&nbsp;&nbsp; No selected cell<br/>OR<br/>&nbsp;&nbsp;&nbsp;&nbsp; The selected cell already has a number in it<br/>a random cell will be uncovered.</div>
+                <div class="helpSystemParagraph">Be careful using the hints system. You only have a set amount of hits available (depending on the difficulty level of the puzzle) and it will also cost you points!</div>
+            </div>
+        </div>
     </div>
 </body>
 
