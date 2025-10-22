@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.8',
+    version: '1.8.1',
 
     backgroundImage: 'bgTexture1', // default background image
     currentGameDifficulty: '',
@@ -1498,6 +1498,9 @@ var vars = {
         puzzle[r][c] = 0;
         notes[r][c].clear();
         vars.bad = [];
+
+        if (!vars.playerEntryList.length) vars.updatePlayerData('played',true); // we have reset to no moves taken, so reduce the played count by 1
+
         vars.draw();
     },
 
