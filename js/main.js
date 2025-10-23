@@ -3,18 +3,11 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.8.3',
-
-    backgroundImage: 'bgTexture1', // default background image
-    currentGameDifficulty: '',
+    version: '1.8.4',
     DEBUG: false,
-    textColour: '#06d474',
-    
-    animationEntries: [], // array of {r,c,number,value,min,max,inc,complete,delayInFrames}
-    bad: [], // array of {r,c} objects for cells that are in conflict
+    currentGameDifficulty: '',
     gameWon: false,
-
-    cellWidth: 9,
+    textColour: '#06d474',
 
     localStorage: {
         key: 'sudoku_',
@@ -156,6 +149,8 @@ var vars = {
     animatedBackgroundOptions: ['animals','food','fruits','leaves_n_flowers','sweets'],
     animatedBackgroundSelectedIndex: 0,
 
+    animationEntries: [], // array of {r,c,number,value,min,max,inc,complete,delayInFrames}
+
     audio: {
         loadedFiles: {},
         init: ()=> {
@@ -185,6 +180,9 @@ var vars = {
             a.currentTime = 0;
         }
     },
+
+    backgroundImage: 'bgTexture1', // default background image
+    bad: [], // array of {r,c} objects for cells that are in conflict
 
     isBonusGame: false,
     bonusPointsEnabled: false, // if the player has completed all bronze, silver and gold bonus games, they get double score for 1 week
@@ -298,6 +296,8 @@ var vars = {
             vars.localStorage.saveBonusDetails();
         }
     },
+
+    cellWidth: 9,
 
     cheats: {
         SolveBarOne: ()=> {
@@ -540,12 +540,12 @@ var vars = {
         });
 
         // always enabled
-        document.getElementById('exitCancel').addEventListener('click', () => {
+        exitCancelButton.addEventListener('click', () => {
             document.getElementById('exitBonusGameContainer').classList.remove('active');
         });
 
         // always enabled
-        document.getElementById('exitOK').addEventListener('click', () => {
+        exitOKButton.addEventListener('click', () => {
             document.getElementById('exitBonusGameContainer').classList.remove('active');
             vars.isBonusGame = false;
             vars.localStorage.saveBonusDetails();
@@ -558,6 +558,8 @@ var vars = {
 
             vars.disableSolutionButton(false);
             vars.showBonusMessages(false);
+
+            vars.playerEntryList.length && vars.updatePlayerData('played', true); // if the player has made any entries, reduce played count
 
             vars.newPuzzle();
         });
@@ -1285,6 +1287,12 @@ var vars = {
                     bonusGameDetails.positions.forEach((p)=> {
                         const { r, c } = p;
                         puzzle[r][c] = solution[r][c];
+                        let loadedFromBonusPuzzle = true;
+                        vars.saveUserEntry(r, c, solution[r][c], loadedFromBonusPuzzle);
+
+                        if (vars.playerEntryList.length===1) {
+                            vars.updatePlayerData('played'); // players first move, save this to games played
+                        };
                     });
 
                     vars.draw();
@@ -1348,7 +1356,7 @@ var vars = {
         if (!vars.playerEntryList.length) return;
 
         vars.playerEntryList = vars.playerEntryList.filter(e=>!(e.r===r && e.c===c));
-        if (!vars.playerEntryList.length) vars.updatePlayerData('played', true); 
+        !vars.playerEntryList.length && vars.updatePlayerData('played', true);
     },
 
     resetSelected: ()=> {
@@ -1356,8 +1364,8 @@ var vars = {
         selInfo.textContent = 'none';
     },
 
-    saveUserEntry: (r, c, n) => {
-        vars.removeUserEntry(r, c); // make sure the entry doesnt already exist
+    saveUserEntry: (r, c, n, loadedFromBonusPuzzle=false) => {
+        !loadedFromBonusPuzzle && vars.removeUserEntry(r, c); // make sure the entry doesnt already exist
         vars.playerEntryList.push({ r, c, n });
     },
 
@@ -1729,6 +1737,8 @@ let checkBtn = document.getElementById('checkBtn');
 let closeStatsBtn = document.getElementById('closePlayerStats');
 let colourSettingsButton = document.getElementById('colourSettingsButton');
 let difficultySelect = document.getElementById('difficulty');
+let exitCancelButton = document.getElementById('exitCancel');
+let exitOKButton = document.getElementById('exitOK');
 let helpButton = document.getElementById('helpButton');
 let hintBtn = document.getElementById('hintBtn');
 let newBtn = document.getElementById('newBtn');

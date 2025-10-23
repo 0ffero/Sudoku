@@ -235,6 +235,7 @@ button {
     position: absolute;
     visibility: hidden;
     width: 100vw;
+    z-index: 12;
 }
 #exitBonusGameContainer.active {
     transition: opacity 0.5s;
