@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.8.1',
+    version: '1.8.3',
 
     backgroundImage: 'bgTexture1', // default background image
     currentGameDifficulty: '',
@@ -495,11 +495,14 @@ var vars = {
 
     initButtonEventListeners: ()=> {
         backgroundImagesButton.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(backgroundImagesButton)) return;
+
             vars.hideAllOptionContainers();
             vars.switchBGOptionsVisibility();
         });
 
         bonusGameButton.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(bonusGameButton)) return;
             if (!document.querySelector('#bonusGameButton.active')) return;
 
             vars.disableButtonsAfterWin(false);
@@ -513,6 +516,7 @@ var vars = {
         });
 
         checkBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(checkBtn)) return;
             if (vars.gameWon) return;
 
             vars.bad = vars.findConflicts(puzzle);
@@ -523,18 +527,24 @@ var vars = {
         });
 
         closeStatsBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(closeStatsBtn)) return;
+
             document.getElementById('playerStatsContainer').classList.remove('active');
         });
 
         colourSettingsButton.addEventListener('click', ()=> {
+            if (!vars.buttonIsEnabled(colourSettingsButton)) return;
+
             vars.hideAllOptionContainers();
             vars.switchColourOptionsVisibility();
         });
 
+        // always enabled
         document.getElementById('exitCancel').addEventListener('click', () => {
             document.getElementById('exitBonusGameContainer').classList.remove('active');
         });
 
+        // always enabled
         document.getElementById('exitOK').addEventListener('click', () => {
             document.getElementById('exitBonusGameContainer').classList.remove('active');
             vars.isBonusGame = false;
@@ -552,6 +562,7 @@ var vars = {
             vars.newPuzzle();
         });
 
+        // Always enabled
         helpButton.addEventListener('click', ()=> {
             vars.hideAllOptionContainers();
             vars.showHelpContainer(true);
@@ -559,12 +570,15 @@ var vars = {
 
         // the hint button has an override for right click. that event listener is in initMouseEventListeners()
         hintBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(hintBtn)) return;
             if (vars.gameWon) return;
 
             vars.giveHint();
         });
 
         newBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(newBtn)) return;
+
             if (vars.isBonusGame && !vars.gameWon) {
                 document.getElementById('exitBonusGameContainer').classList.add('active');
                 return; // cannot start a new game while in a bonus game
@@ -575,11 +589,13 @@ var vars = {
             vars.newPuzzle();
         });
 
+        // Always enabled
         playerDetailsButton.addEventListener('click', () => {
             document.getElementById('playerStatsContainer').classList.add('active');
         });
 
         resetBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(resetBtn)) return;
             if (vars.gameWon) return;
             if (!vars.playerEntryList.length) return;
 
@@ -590,10 +606,14 @@ var vars = {
             notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
             vars.gameWon = false;
             vars.updatePlayerData('played', true); // the player is reseting their current game, so reduce the played var and save
+
+            vars.playerEntryList = [];
+
             vars.draw();
         });
 
         solveBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(solveBtn)) return;
             if (vars.gameWon) return;
 
             puzzle = vars.copyGrid(solution);
@@ -601,6 +621,7 @@ var vars = {
         });
 
         undoBtn.addEventListener('click', () => {
+            if (!vars.buttonIsEnabled(undoBtn)) return;
             if (vars.gameWon) return;
 
             vars.undoLastMove();
@@ -788,6 +809,10 @@ var vars = {
         // reset bonus game status and save
         vars.isBonusGame = false;
         vars.localStorage.saveBonusDetails();
+    },
+
+    buttonIsEnabled: (button) => {
+        return window.getComputedStyle(button).opacity === "1";
     },
 
     canPlace: (grid, r, c, n) => {
@@ -1320,7 +1345,10 @@ var vars = {
     },
 
     removeUserEntry: (r, c) => {
+        if (!vars.playerEntryList.length) return;
+
         vars.playerEntryList = vars.playerEntryList.filter(e=>!(e.r===r && e.c===c));
+        if (!vars.playerEntryList.length) vars.updatePlayerData('played', true); 
     },
 
     resetSelected: ()=> {
@@ -1541,16 +1569,16 @@ var vars = {
         switch (which) {
             case 'hint':
                 playerData[difficulty].hints++;
-                console.log(`Hint used. Total hints for ${difficulty}: ${playerData[difficulty].hints}`);
+                vars.DEBUG && console.log(`Hint used. Total hints for ${difficulty}: ${playerData[difficulty].hints}`);
             break;
             case 'played':
                 !reduce ? (playerData[difficulty].played++) : (playerData[difficulty].played = Clamp(playerData[difficulty].played-1, 0, Infinity));
-                console.log(`Game played. Total games for ${difficulty}: ${playerData[difficulty].played}`);
+                vars.DEBUG && console.log(`Game played. Total games for ${difficulty} difficulty: ${playerData[difficulty].played}`);
             break;
 
             case 'win':
                 playerData[difficulty].won++;
-                console.log(`Game won. Total wins for ${difficulty}: ${playerData[difficulty].won}`);
+                vars.DEBUG && console.log(`Game won. Total wins for ${difficulty}: ${playerData[difficulty].won}`);
             break;
 
             default:
