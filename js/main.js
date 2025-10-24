@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.8.4',
+    version: '1.9',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -14,11 +14,10 @@ var vars = {
         
         init: ()=> {
             const ls = vars.localStorage;
-            if (!localStorage.getItem(ls.key+'level')) localStorage.setItem(ls.key+'level', '0');
-            if (!localStorage.getItem(ls.key+'points')) localStorage.setItem(ls.key+'points', '0');
             let bonusDetailsDefaults = vars.bonusDetailsDefaults = JSON.stringify({bronze: {gamesUntilUnlock: 3, bonus: 100}, silver: {gamesUntilUnlock: 3, bonus: 150}, gold: {gamesUntilUnlock: 3, bonus: 200}});
             if (!localStorage.getItem(ls.key+'bonus')) localStorage.setItem(ls.key+'bonus', bonusDetailsDefaults);
             
+            /* BONUS AND POINTS DETAILS */
             let bG = JSON.parse(localStorage.getItem(ls.key+'bonus'));
             vars.bonusGames.bronze = bG.bronze;
             vars.bonusGames.silver = bG.silver;
@@ -26,16 +25,48 @@ var vars = {
 
             if (!localStorage.getItem(ls.key+'bonusPointsEnabledUntil')) localStorage.setItem(ls.key+'bonusPointsEnabledUntil', '20241225');
             if (!localStorage.getItem(ls.key+'bonusPointsEnabled')) localStorage.setItem(ls.key+'bonusPointsEnabled', 'false');
-            
+            if (!localStorage.getItem(ls.key+'pointsUntilNextLevel')) localStorage.setItem(ls.key+'pointsUntilNextLevel', vars.getPointsUntilNextLevel());
+            if (!localStorage.getItem(ls.key+'pointsUntilNextLevelMax')) localStorage.setItem(ls.key+'pointsUntilNextLevelMax', vars.pointsUntilNextLevel);
             vars.bonusPointsEnabled = localStorage.getItem(ls.key+'bonusPointsEnabled')==='true';
             vars.bonusPointsEnabledUntil = localStorage.getItem(ls.key+'bonusPointsEnabledUntil');
-
-            if (!localStorage.getItem(ls.key+'pointsUntilNextLevel')) localStorage.setItem(ls.key+'pointsUntilNextLevel', vars.getPointsUntilNextLevel());
             vars.pointsUntilNextLevel = localStorage.getItem(ls.key+'pointsUntilNextLevel')*1;
-            document.getElementById('pointsUntilNextLevelNum').textContent = vars.pointsUntilNextLevel;
-
-            if (!localStorage.getItem(ls.key+'pointsUntilNextLevelMax')) localStorage.setItem(ls.key+'pointsUntilNextLevelMax', vars.pointsUntilNextLevel);
             vars.pointsUntilNextLevelMax = localStorage.getItem(ls.key+'pointsUntilNextLevelMax')*1;
+            
+            document.getElementById('pointsUntilNextLevelNum').textContent = vars.pointsUntilNextLevel;
+            /* END OF BONUS AND POINTS DETAILS */
+            
+
+
+            /* PLAYER DATA, LEVEL and POINTS */
+            if (!localStorage.getItem(ls.key+'playerData')) localStorage.setItem(ls.key+'playerData', JSON.stringify(vars.playerData));
+            if (!localStorage.getItem(ls.key+'level')) localStorage.setItem(ls.key+'level', '0');
+            if (!localStorage.getItem(ls.key+'points')) localStorage.setItem(ls.key+'points', '0');
+            vars.playerData = JSON.parse(localStorage.getItem(ls.key+'playerData'));
+            vars.playerLevel = localStorage.getItem(ls.key+'level')*1;
+            vars.playerPoints = localStorage.getItem(ls.key+'points')*1;
+            /* END OF PLAYER DATA */
+
+
+
+            /* COLOUR SCHEME AND BACKGROUND */
+            if (!localStorage.getItem(ls.key+'colourScheme')) localStorage.setItem(ls.key+'colourScheme', 'default');
+
+            if (!localStorage.getItem(ls.key+'backgroundType')) localStorage.setItem(ls.key+'backgroundType', 'texture');
+            if (!localStorage.getItem(ls.key+'animatedBackgroundIndex')) localStorage.setItem(ls.key+'animatedBackgroundIndex', '0');
+            if (!localStorage.getItem(ls.key+'backgroundImage')) localStorage.setItem(ls.key+'backgroundImage', 'bgTexture1');
+            if (!localStorage.getItem(ls.key+'positionedImage')) localStorage.setItem(ls.key+'positionedImage', 'none');
+
+            
+            let cs = localStorage.getItem(ls.key+'colourScheme');
+            backgroundColourChange(cs);
+            
+            vars.backgroundType = localStorage.getItem(ls.key+'backgroundType');
+            
+            vars.animatedBackgroundSelectedIndex = localStorage.getItem(ls.key+'animatedBackgroundIndex')*1;
+            vars.backgroundImage = localStorage.getItem(ls.key+'backgroundImage');
+            vars.positionedImage = localStorage.getItem(ls.key+'positionedImage');
+            /* END OF COLOUR SCHEME AND BACKGROUND */
+
 
 
             // check to see if the bonus points date has passed
@@ -45,22 +76,6 @@ var vars = {
                 vars.bonusPointsEnabled = false;
                 vars.bonusGames.reset(); // reset bG.bronze, silver and gold and save them
             };
-            
-            vars.playerLevel = localStorage.getItem(ls.key+'level')*1;
-            vars.playerPoints = localStorage.getItem(ls.key+'points')*1;
-
-            if (!localStorage.getItem(ls.key+'colourScheme')) localStorage.setItem(ls.key+'colourScheme', 'default');
-            let cs = localStorage.getItem(ls.key+'colourScheme');
-            backgroundColourChange(cs);
-
-            if (!localStorage.getItem(ls.key+'playerData')) localStorage.setItem(ls.key+'playerData', JSON.stringify(vars.playerData));
-            vars.playerData = JSON.parse(localStorage.getItem(ls.key+'playerData'));
-
-            if (!localStorage.getItem(ls.key+'backgroundImage')) localStorage.setItem(ls.key+'backgroundImage', vars.backgroundImage);
-            vars.backgroundImage = localStorage.getItem(ls.key+'backgroundImage');
-
-            if (!localStorage.getItem(ls.key+'animatedBackgroundIndex')) localStorage.setItem(ls.key+'animatedBackgroundIndex', '0');
-            vars.animatedBackgroundSelectedIndex = localStorage.getItem(ls.key+'animatedBackgroundIndex')*1;
         },
 
         reset: ()=> {
@@ -182,6 +197,7 @@ var vars = {
     },
 
     backgroundImage: 'bgTexture1', // default background image
+    backgroundType: 'animated',
     bad: [], // array of {r,c} objects for cells that are in conflict
 
     isBonusGame: false,
@@ -357,9 +373,8 @@ var vars = {
                 div.style.backgroundImage = `url(${b.file})`;
                 div.addEventListener('click', ()=> {
                     vars.DEBUG && console.log(`User selected background image: ${b.name}`);
-                    vars.switchToAnimatedWallpaper(false);
                     vars.backgroundImage = b.name;
-                    vars.setBackgroundImage();
+                    vars.switchToBackgroundType('texture', b.name);
                 });
                 bgImageOptions.appendChild(div);
 
@@ -368,7 +383,7 @@ var vars = {
                 };
             });
 
-            // add the 4 animated wallpaper options
+            // add the new animated wallpaper options
             vars.animatedBackgroundOptions.forEach((b,i)=> {
                 let div = document.createElement('div');
                 div.classList.add('bgImageOptionAnimated');
@@ -384,11 +399,28 @@ var vars = {
                     };
                     
                     vars.animatedBackgroundSelectedIndex = i;
-                    vars.localStorage.saveAnimatedBackgroundIndex();
-                    vars.switchToAnimatedWallpaper(true,true); // swap the image and show
+                    vars.switchToBackgroundType('animated', i);
                 });
                 bgImageOptions.appendChild(div);
             });
+
+            let positionedImages = vars.positionedImageClass.getTypes();
+            positionedImages.forEach((b,i)=> {
+                let div = document.createElement('div');
+                div.classList.add('bgImageOptionPositioned');
+                div.style.backgroundImage = `url(./images/positionedBGicon.png)`;
+                let text = b.length>14 ? b.slice(0,11)+'...' : b;
+                div.innerText = text.replaceAll('_',' ').toUpperCase();
+                div.addEventListener('click', ()=> {
+                    vars.DEBUG && console.log(`User selected positioned background image: ${b}`);
+                    vars.switchToBackgroundType('positioned', b);
+                });
+                bgImageOptions.appendChild(div);
+            });
+        },
+
+        isValid: (which)=> {
+            return vars.images.bgFiles.findIndex(b=>b.name===which) !==-1;
         }
     },
 
@@ -406,17 +438,25 @@ var vars = {
     pointsUntilNextLevel: null,
     pointsUntilNextLevelMax: null,
 
+    positionedImage: 'none',
+    positionedImageClass: null,
+
     selected: { r: -1, c: -1 },
 
     winAnimationRunning: false,
     winAnimationType: 'ScaleDown', // 'ScaleUpScaleDown' or 'ScaleDown'
 
     init: ()=> {
-        console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold;`);
+        console.log(`%cSudoku version ${vars.version}`,`color: ${vars.textColour}; font-weight: bold; font-size: 15px;`);
         document.getElementById('versionText').textContent = `Version: ${vars.version}`;
+
         vars.audio.init();
-        vars.images.init();
         vars.localStorage.init();
+
+        // needs to be initialised before images init() as I need the options from the class
+        vars.positionedImageClass = new PositionedImage('mainContainer', vars.positionedImage);
+
+        vars.images.init();
         vars.initButtonEventListeners();
         vars.initKeyboardEventListeners();
         vars.initMouseEventListeners();
@@ -427,6 +467,7 @@ var vars = {
             vars.newPuzzle();
             vars.bonusGames.drawBonusPips();
         });
+        vars.updateDifficultyColour(difficultySelect);
 
         if (!vars.pointsUntilNextLevel) {
             vars.getPointsUntilNextLevel();
@@ -436,8 +477,6 @@ var vars = {
         document.getElementById('playerLevelNum').textContent = vars.playerLevel;
         document.getElementById('playerPointsNum').textContent = vars.playerPoints;
         document.getElementById('pointsUntilNextLevelNum').textContent = vars.pointsUntilNextLevel;
-
-        vars.updateDifficultyColour(difficultySelect);
 
         let lPC = vars.LevelAndPointsClass = new LevelAndPointsClass('levelCanvas');
         lPC.draw(vars.playerLevel, vars.getCurrentPointsAsPercentage());
@@ -465,9 +504,29 @@ var vars = {
         vars.updatePlayerDataUI();
         vars.updatePlayerAndColourUI();
 
-        vars.backgroundImage!=='none' && vars.setBackgroundImage();
-
+        
+        /* set up the image classes */
         vars.initAnimatedWallpaperClass();
+        /* end of set up image classes */
+
+        /* set the background according to the saved settings */
+        let imageValue = null;
+        switch (vars.backgroundType) {
+            case 'animated':
+                imageValue = vars.animatedBackgroundSelectedIndex;
+            break;
+
+            case 'positioned':
+                imageValue = vars.positionedImage;
+            break;
+
+            case 'texture':
+                imageValue = vars.backgroundImage;
+            break;
+        };
+        vars.switchToBackgroundType(vars.backgroundType, imageValue);
+        /* end of set background according to saved settings */
+        
 
         // initialise the help page to page 0
         vars.help.showPage(0);
@@ -1521,8 +1580,58 @@ var vars = {
     },
 
     switchToAnimatedWallpaper: (enable=true, changeImage=false)=> {
-        enable && vars.setBackgroundImage(enable);
+        let clear = enable;
+        clear && vars.setBackgroundImage(clear);
+        localStorage.setItem(vars.localStorage.key+'animatedBackgroundIndex', vars.animatedBackgroundSelectedIndex);
         vars.showAnimatedWallpaper(enable, changeImage);
+    },
+
+    switchToBackgroundType: (bgType, which)=> {
+        let allowed = ['animated','positioned','texture'];
+        if (!allowed.includes(bgType)) {
+            console.warn(`Unknown background type: ${bgType}. Ignoring request.`);
+            return;
+        };
+
+        if (bgType==='animated' && which<0 || which>=vars.animatedBackgroundOptions.length) {
+            console.warn(`Animated background index out of range: ${which}. Ignoring request.`);
+            return;
+        } else if (bgType==='positioned' && !vars.positionedImageClass.checkIfValid(which)) {
+            console.warn(`Positioned background name not found: ${which}. Ignoring request.`);
+            return;
+        } else if (bgType==='texture' && !vars.images.isValid(which)) {
+            console.warn(`Texture background name not found: ${which}. Ignoring request.`);
+            return;
+        };
+
+        vars.showAnimatedWallpaper(false); // hide the animated wallpaper
+        vars.setBackgroundImage(true); // clear the background image
+        vars.switchToPositionedImage('none');
+
+        vars.backgroundType = bgType;
+        localStorage.setItem(vars.localStorage.key+'backgroundType', vars.backgroundType);
+
+        switch (bgType) {
+            case 'animated':
+                vars.animatedBackgroundSelectedIndex = which;
+                vars.switchToAnimatedWallpaper(true, true);
+            break;
+
+            case 'positioned':
+                vars.switchToPositionedImage(which);
+            break;
+
+            case 'texture':
+                vars.backgroundImage = which;
+                vars.setBackgroundImage();
+            break;
+        };
+    },
+
+    switchToPositionedImage: (imageName)=> {
+        vars.positionedImage = imageName;
+        localStorage.setItem(vars.localStorage.key+'positionedImage', vars.positionedImage);
+        vars.positionedImageClass.setImageAndData(vars.positionedImage);
     },
 
     undoLastMove: ()=> {
