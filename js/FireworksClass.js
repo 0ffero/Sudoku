@@ -115,9 +115,9 @@ class Fireworks {
 
     _explode(x, y) {
         try {
-            if (typeof vars !== 'undefined' && vars && typeof vars.playSound === 'function') {
-                vars.playSound('fireworkExplosion');
-            }
+            if (typeof vars !== 'undefined' && vars.audio && typeof vars.audio.play === 'function') {
+                vars.audio.play('fireworkExplode');
+            };
         } catch (e) { }
 
         const count = this.opts.particleCount;

@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9',
+    version: '1.9.1',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -169,7 +169,7 @@ var vars = {
     audio: {
         loadedFiles: {},
         init: ()=> {
-            ['cheatsEnabled','gainLevel','pointsIncrease'].forEach((f)=> {
+            ['cheatsEnabled','gainLevel','pointsIncrease','fireworkExplode'].forEach((f)=> {
                 let a = new Audio(`./audio/${f}.ogg`);
                 f==='pointsIncrease' && (a.loop = true);
                 a.load();
@@ -181,7 +181,6 @@ var vars = {
             if (!vars.audio.loadedFiles[file]) return;
 
             let a = vars.audio.loadedFiles[file];
-            if (!a.paused) return;
 
             a.currentTime = 0;
             a.play();
