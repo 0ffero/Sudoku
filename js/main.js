@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9.1',
+    version: '1.9.2',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -181,6 +181,7 @@ var vars = {
             if (!vars.audio.loadedFiles[file]) return;
 
             let a = vars.audio.loadedFiles[file];
+            if (file==='pointsIncrease' && !a.paused) return;
 
             a.currentTime = 0;
             a.play();
