@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9.2',
+    version: '1.9.4',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -220,15 +220,15 @@ var vars = {
 
             let bG = vars.bonusGames;
             if (bG.bronze.gamesUntilUnlock === 0 && !bG.bronze.complete) {
-                console.log(`Player is still to complete their bronze bonus game`);
+                vars.DEBUG && console.log(`Player is still to complete their bronze bonus game`);
                 return; // already unlocked
             };
             if (bG.silver.gamesUntilUnlock === 0 && !bG.silver.complete) {
-                console.log(`Player is still to complete their silver bonus game`);
+                vars.DEBUG && console.log(`Player is still to complete their silver bonus game`);
                 return; // already unlocked
             };
             if (bG.gold.gamesUntilUnlock === 0 && !bG.gold.complete) {
-                console.log(`Player is still to complete their gold bonus game`);
+                vars.DEBUG && console.log(`Player is still to complete their gold bonus game`);
                 return; // already unlocked
             };
 
@@ -304,7 +304,7 @@ var vars = {
         },
 
         reset: ()=> {
-            console.log(`Resetting bonus game details`);
+            vars.DEBUG && console.log(`Resetting bonus game details`);
             let bG = vars.bonusGames;
             bG.bronze.gamesUntilUnlock = 3; bG.bronze.complete = false;
             bG.silver.gamesUntilUnlock = 3; bG.silver.complete = false;
@@ -461,6 +461,16 @@ var vars = {
         vars.initKeyboardEventListeners();
         vars.initMouseEventListeners();
 
+        // initialise the fireworks class
+        vars.classFireworks = new Fireworks('fwCanvas', {
+            rocketMinSpeed: 7,
+            rocketMaxSpeed: 10,
+            gravity: 0.18,
+            particleCount: 160,
+            particleLife: 70,
+            spawnInterval: 1000,
+        });
+
         difficultySelect.addEventListener('change', (d) => {
             d = d.target;
             vars.updateDifficultyColour(d);
@@ -482,24 +492,10 @@ var vars = {
         lPC.draw(vars.playerLevel, vars.getCurrentPointsAsPercentage());
 
         vars.newPuzzle(); // we need the difficulty before we can decide the multiplier for the bonus game
-        
-        setTimeout(()=> {
-            vars.hideLoadingScreen();
-        }, 1000);
 
         vars.bonusGames.drawBonusPips();
 
         vars.getDiamondStartLevel();
-
-        // initialise the fireworks class
-        vars.classFireworks = new Fireworks('fwCanvas', {
-            rocketMinSpeed: 7,
-            rocketMaxSpeed: 10,
-            gravity: 0.18,
-            particleCount: 160,
-            particleLife: 70,
-            spawnInterval: 1000,
-        });
 
         vars.updatePlayerDataUI();
         vars.updatePlayerAndColourUI();
@@ -527,9 +523,12 @@ var vars = {
         vars.switchToBackgroundType(vars.backgroundType, imageValue);
         /* end of set background according to saved settings */
         
-
         // initialise the help page to page 0
         vars.help.showPage(0);
+
+        setTimeout(()=> {
+            vars.hideLoadingScreen();
+        }, 1000);
     },
 
     initAnimatedWallpaperClass: ()=> {
@@ -926,6 +925,57 @@ var vars = {
         };
     },
 
+    checkPuzzleDifficulty: ()=> {
+        if (vars.currentGameDifficulty!=='medium') { return `Not medium difficulty. Ignoring`; };
+        vars.DEBUG && console.log(`%cChecking puzzles difficulty...`,`color: ${vars.textColour}; font-weight: bold;`);
+
+        let positionData = [];
+        let problemAreas = [];
+        for (let a = 0; a<9; a++) {
+            let data = vars.getSudokuBlockFreeCount(a);
+            positionData.push(data);
+            if (data.free>=8) {
+                vars.DEBUG && console.log(`Problem with area ${a}`);
+                problemAreas.push({area: a, data: data});
+            };
+        };
+
+        // do we have any problem areas?
+        if (!problemAreas.length) {
+            vars.DEBUG && console.log(`  %c- No problem areas found. Puzzle is valid.`,`color: ${vars.textColour}; font-weight: bold;`);
+            return 'Valid';
+        };
+
+        let nI = -Infinity;
+        let data = [];
+        positionData.forEach((p,i)=> {
+            if (9-p.free > nI) {
+                nI = 9-p.free;
+                data = p;
+            };
+        });
+        
+        let selectedIndex = rnd(0,data.taken.length-1);
+        let sel = data.taken[selectedIndex];
+        let r = sel.r;
+        let c = sel.c;
+        vars.DEBUG && console.log(`Removing value at r${r} c${c} from puzzle. As it only had ${data.free} position${data.free>1 ? 's' : ''} free.`);
+        puzzle[r][c] = 0; // remove the value
+        
+        // now select a random empty position from the problem area and place the value there
+        data = problemAreas[0].data.positionsAvailable;
+        let selectedPosIndex = rnd(0, data.length-1);
+        let selPos = data[selectedPosIndex];
+        let newR = selPos.r;
+        let newC = selPos.c;
+        let value = solution[newR][newC];
+        puzzle[newR][newC] = value;
+        vars.DEBUG && console.log('Problem Data:',data);
+        vars.DEBUG && console.log(`Placing value ${value} at r${newR} c${newC} instead which has ${data.length} positions free.`);
+
+        vars.checkPuzzleDifficulty();
+    },
+
     copyGrid: (g) => {
         return g.map(r => r.slice());
     },
@@ -985,7 +1035,7 @@ var vars = {
             // check if the animations are complete
             let stillToFinish = vars.animationEntries.filter(e=>!e.complete);
             if (!stillToFinish.length) { // they are!
-                console.log(`Animation complete! Showing the game over message`);
+                vars.DEBUG && console.log(`Animation complete! Showing the game over message`);
                 clearInterval(vars.checkAnimationFinishedInterval);
                 delete vars.checkAnimationFinishedInterval;
                 vars.winAnimationRunning = false;
@@ -1090,6 +1140,55 @@ var vars = {
         throw new Error("Failed to generate full Sudoku board after many attempts");
     },
 
+    /*
+        These functions are used after a new puzzle has been created on MEDIUM difficulty only.
+        Theres a low chance that the backwards solver will reduce a single 3x3 area to only show a single number, making the puzzle slightly more difficult to solve.
+        This is used to find a group that has a lot of filled cells. It will then remove a number in that group and show another number in the group that only had one cell revealed.
+        Bringing the overall difficulty down slightly.
+    */
+    getSudokuBlockFreeCount: (areaIndex) => {
+        let freeCount = 0;
+        let positionData = { free: 0, positionsAvailable: [], taken: [] };
+        let indexes = vars.getSudokuBlockIndexes(areaIndex);
+
+        indexes.forEach(pos=> {
+            let r = pos[0];
+            let c = pos[1];
+            if (puzzle[r][c]===0) {
+                freeCount++;
+                positionData.positionsAvailable.push({r: r, c: c});
+            } else {
+                positionData.taken.push({r: r, c: c, value: puzzle[r][c]}) ;
+            };
+            positionData.free = freeCount;
+        });
+
+        return positionData;
+    },
+
+    getSudokuBlockIndexes: (areaIndex) => {
+        if (areaIndex < 0 || areaIndex > 8) {
+            throw new Error("Area index must be between 0 and 8");
+        };
+
+        const block = [];
+
+        // Each block is arranged in a 3x3 grid of blocks
+        const blockRow = Math.floor(areaIndex / 3); // 0,1,2
+        const blockCol = areaIndex % 3;             // 0,1,2
+
+        // Loop inside the 3x3 block
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                const row = blockRow * 3 + r;
+                const col = blockCol * 3 + c;
+                block.push([row, col]);
+            };
+        };
+
+        return block;
+    },
+
     getBonusPoints: (remove=0)=> {
         let pointsDiv = document.getElementById('bonusPointsCount');
         let pointsText = pointsDiv.textContent;
@@ -1158,7 +1257,7 @@ var vars = {
         let mult = vars.currentGameDifficulty === 'hard' ? 4 : 1;
         if (playerPointsOnWinNum.innerText*1<=10*mult) return; // no more hints allowed
 
-        console.log(`giveBetterHint()`);
+        vars.DEBUG && console.log(`giveBetterHint()`);
         let largeR = 0;
         let lines = {
             r: [],
@@ -1364,6 +1463,7 @@ var vars = {
         const empties = difficultySelect.value*1;
         solution = vars.generateFull();
         puzzle = vars.makePuzzleFromSolution(solution, empties);
+        vars.checkPuzzleDifficulty();
         vars.initial = vars.copyGrid(puzzle);
         notes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
         
@@ -1548,7 +1648,7 @@ var vars = {
         };
 
         if (!vars.pointsToCount) {
-            console.log(`%cFinished adding score. Saving to local storage`, 'font-weight: bold; color: #30ff30;');
+            vars.DEBUG && console.log(`%cFinished adding score. Saving to local storage`, 'font-weight: bold; color: #30ff30;');
             vars.audio.stop('pointsIncrease');
 
             let key = vars.localStorage.key;
