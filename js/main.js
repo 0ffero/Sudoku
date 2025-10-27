@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9.4',
+    version: '1.9.5',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -918,6 +918,7 @@ var vars = {
                 vars.doWinAnimation();
                 vars.showFireworks();
 
+                vars.scaleUpPlayerLevelAndPoints();
                 vars.startAddingScore();
                 vars.bonusGames.drawBonusPips();
 
@@ -1528,6 +1529,11 @@ var vars = {
         vars.playerEntryList.push({ r, c, n });
     },
 
+    scaleUpPlayerLevelAndPoints: (scaleUp=true)=> {
+        let div = document.getElementById('playerScoreAndLevelContainer');
+        scaleUp ? div.classList.add('levelCanvasShow') : div.classList.remove('levelCanvasShow');
+    },
+
     setBackgroundImage: (clear=false)=> {
         let bg = vars.backgroundImage;
         let div = document.getElementById('mainContainer');
@@ -1649,6 +1655,8 @@ var vars = {
 
         if (!vars.pointsToCount) {
             vars.DEBUG && console.log(`%cFinished adding score. Saving to local storage`, 'font-weight: bold; color: #30ff30;');
+
+            vars.scaleUpPlayerLevelAndPoints(false);
             vars.audio.stop('pointsIncrease');
 
             let key = vars.localStorage.key;

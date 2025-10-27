@@ -12,12 +12,12 @@ class LevelAndPointsClass {
 
         // HiDPI scaling
         const dpr = window.devicePixelRatio || 1;
-        this.canvas.width = Math.round(this.size * dpr);
-        this.canvas.height = Math.round(this.size * dpr);
+        this.canvas.width = Math.round(this.size * 2);
+        this.canvas.height = Math.round(this.size * 2);
         this.canvas.style.width = `${this.size}px`;
         this.canvas.style.height = `${this.size}px`;
         this.ctx = this.canvas.getContext('2d');
-        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale context
+        this.ctx.setTransform(2, 0, 0, 2, 0, 0); // scale context
 
         // geometry
         this.outerTrackWidth = opts.outerTrackWidth ?? 12;

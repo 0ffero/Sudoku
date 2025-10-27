@@ -414,6 +414,12 @@ button {
     color: var(--muted);
 }
 
+.levelCanvasShow {
+    transition: 333ms;
+    transform: scale(2) translate(-50px, 50px) !important;
+    background-color: var(--bg) !important;
+}
+
 #loadingScreenContainer {
     transition: 1s;
 
@@ -492,6 +498,7 @@ button {
 }
 
 #playerScoreAndLevelContainer {
+    transition: transform 333ms;
     align-items: center;
     background-color: #00000030;
     border: 1px solid #ffffff30;
@@ -502,6 +509,7 @@ button {
     position: absolute;
     transform: translate(-400px, 0px);
     width: 180px;
+    z-index: 2;
 }
 
 .playerStatRow {
