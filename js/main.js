@@ -913,6 +913,7 @@ var vars = {
                     vars.bonusGames.checkForBonusGame();
                 };
 
+                vars.resetSelected();
                 vars.disableButtonsAfterWin(true);
 
                 vars.doWinAnimation();
