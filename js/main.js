@@ -1625,11 +1625,7 @@ var vars = {
     },
 
     startAddingScore: ()=> {
-        if (!vars.pointsToCount) {
-            vars.audio.stop('pointsIncrease');
-            vars.updatePlayerDataUI();
-            return;
-        };
+        if (!vars.pointsToCount) return;
 
         vars.audio.play('pointsIncrease');
 
@@ -1669,10 +1665,13 @@ var vars = {
 
             vars.updatePlayerDataUI();
 
-            // show the player data container if the players level or colour has changed
-            if (!vars.animate.showNewLevel) return;
+            let pc = vars.getCurrentPointsAsPercentage();
+            vars.LevelAndPointsClass.draw(vars.playerLevel, pc);
 
-            vars.animate.colourAndLevelUp();
+            // show the player data container if the players level or colour has changed
+            vars.animate.showNewLevel && vars.animate.colourAndLevelUp();
+
+            return;
         };
 
         setTimeout(()=> {
