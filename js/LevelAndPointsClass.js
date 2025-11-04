@@ -11,7 +11,7 @@ class LevelAndPointsClass {
         this.center = this.size / 2;
 
         // HiDPI scaling
-        const dpr = window.devicePixelRatio || 1;
+        // const dpr = window.devicePixelRatio || 1; no longer used, fixed at 2x for sharpness when scaling canvas up to 2x
         this.canvas.width = Math.round(this.size * 2);
         this.canvas.height = Math.round(this.size * 2);
         this.canvas.style.width = `${this.size}px`;

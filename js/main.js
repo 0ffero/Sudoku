@@ -336,6 +336,11 @@ var vars = {
         }
     },
 
+    fireworksGL: {
+        class: null,
+        supported: null
+    },
+
     images: {
         bgFiles: [
             { name: '', file: './images/backgrounds/bgTexture1.jpg', loaded: false },
@@ -470,6 +475,26 @@ var vars = {
             particleLife: 70,
             spawnInterval: 1000,
         });
+
+
+        vars.fireworksGL.class = new FireworksShader(document.getElementById('fireworksShaderCanvas'));
+        let FWGL = vars.fireworksGL.class;
+        if (FWGL.ERROR) {
+            switch (FWGL.ERROR) {
+                case 'NOWEBGL': // we dont have to do anything else here. the browser doesnt support webgl
+                    vars.fireworksGL.supported = false;
+                    vars.fireworksGL.class = null;
+                    // remove fireworksShaderContainer from the DOM - tested in console as all my browsers support webgl. try statement added for safety
+                    try {
+                        document.getElementById('fireworksShaderContainer').remove();
+                    } catch(e) {};
+                break;
+
+                default:
+                    console.error(`Unknown error initialising FireworksShader: ${FWGL.ERROR}`);
+                break;
+            };
+        };
 
         difficultySelect.addEventListener('change', (d) => {
             d = d.target;
@@ -1588,6 +1613,17 @@ var vars = {
     },
 
     showFireworks: (show=true)=> {
+        if (vars.fireworksGL.class !== null) {
+            let container = document.getElementById('fireworksShaderContainer');
+            if (show) {
+                container.classList.add('active');
+                return;
+            } else {
+                container.classList.remove('active');
+            }
+            return;
+        };
+
         let container = document.getElementById('fireworksContainer');
         if (show) {
             vars.classFireworks.start();

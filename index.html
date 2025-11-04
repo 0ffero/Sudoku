@@ -15,13 +15,15 @@
 
     <script defer src="./js/main.js"></script>
     <script src="./js/LevelAndPointsClass.js"></script>
-    <script src="./js/FireworksClass.js"></script>
+    <script src="./js/FireworksParticlesClass.js"></script>
+    <script src="./js/FireworksShaderClass.js"></script>
     <script src="./js/ImageFieldClass.js"></script>
     <script src="./js/PositionedImageClass.js"></script>
 
     <script src="./js/others/tests.js"></script>
 
     <link rel="stylesheet" href="./css/fireworks.css">
+    <link rel="stylesheet" href="./css/fireworksShader.css">
     <link rel="stylesheet" href="./css/imageFieldClass.css">
 </head>
 
@@ -198,6 +200,10 @@
                 <div class="helpSystemParagraph">Be careful using the hints system. You only have a set amount of hits available (depending on the difficulty level of the puzzle) and it will also cost you points!</div>
             </div>
         </div>
+    </div>
+
+    <div id="fireworksShaderContainer">
+        <canvas id="fireworksShaderCanvas"></canvas>
     </div>
 </body>
 
