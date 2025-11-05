@@ -40,7 +40,7 @@ vec2 Hash12(float t){
 
 vec2 Hash12_Polar(float t){
     float p_Angle = fract(sin(t*674.3)*453.2)*6.2832;
-    float p_Dist = fract(sin((t+p_Angle)*714.3)*263.2);
+    float p_Dist  = fract(sin((t+p_Angle)*714.3)*263.2);
     return vec2(sin(p_Angle), cos(p_Angle)) * p_Dist;
 }
 
@@ -50,7 +50,7 @@ float Explosion(vec2 uv, float t){
         vec2 dir = Hash12_Polar(i+1.) * .5;
         float dist = length(uv - dir * t);
         float brightness = .0005;
-        brightness *= sin(t*20. + i) * .5 + .5; 
+        brightness *= sin(t*20. + i) * .5 + .5;
         brightness *= smoothstep(1., .6, t);
         sparks += brightness / dist;
     }
@@ -60,7 +60,7 @@ float Explosion(vec2 uv, float t){
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     vec2 uv = (fragCoord - .5*iResolution.xy) / iResolution.y;
     vec3 col = vec3(0);
-    
+
     for(float i = 0.; i < NUM_EXPLOSIONS; i++){
         float t = iTime + i / NUM_EXPLOSIONS;
         float ft = floor(t);
@@ -71,9 +71,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
 
         col += Explosion(uv - offset, fract(t)) * color;
     }
-    
+
     col *= 2.0;
-    fragColor = vec4(col, 0.5);
+
+    // ---- Transparent background ----
+    // Alpha is proportional to brightness
+    float alpha = clamp(max(col.r, max(col.g, col.b)), 0.0, 1.0);
+
+    fragColor = vec4(col, alpha);
 }
 
 void main(){
@@ -90,16 +95,6 @@ void main(){
         requestAnimationFrame(this.draw);
     }
 
-    compile(src, type) {
-        const shader = this.gl.createShader(type);
-        this.gl.shaderSource(shader, src);
-        this.gl.compileShader(shader);
-        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            console.error(this.gl.getShaderInfoLog(shader));
-        }
-        return shader;
-    }
-
     _initProgram() {
         const gl = this.gl;
         const vs = this.compile(this.vertexShaderSrc, gl.VERTEX_SHADER);
@@ -110,6 +105,10 @@ void main(){
         gl.attachShader(prog, fs);
         gl.linkProgram(prog);
         gl.useProgram(prog);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
         this.program = prog;
 
         // Fullscreen triangle
@@ -133,11 +132,14 @@ void main(){
         this.resLoc  = gl.getUniformLocation(prog, "resolution");
     }
 
-    resize() {
-        const gl = this.gl;
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    compile(src, type) {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, src);
+        this.gl.compileShader(shader);
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            console.error(this.gl.getShaderInfoLog(shader));
+        }
+        return shader;
     }
 
     draw() {
@@ -147,8 +149,18 @@ void main(){
         gl.uniform1f(this.timeLoc, t);
         gl.uniform2f(this.resLoc, this.canvas.width, this.canvas.height);
 
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         requestAnimationFrame(this.draw);
+    }
+
+    resize() {
+        const gl = this.gl;
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     }
 
     stop() {
