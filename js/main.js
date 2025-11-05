@@ -3,7 +3,7 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9.5',
+    version: '1.9.6',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -1232,7 +1232,7 @@ var vars = {
         
         let cI = Clamp(level/100|0,0,levelColours.length-1);
         let colour = levelColours[cI];
-        let cL = Math.ceil(level/10)%10 +1;
+        let cL = Math.floor((level % 100) / 10) + 1;
 
         let ext = '';
         if (diamondLevelStart && level>=diamondLevelStart) {
