@@ -343,8 +343,9 @@ button {
     column-gap: 20px;
     display: flex;
     justify-content: space-evenly;
-    margin-bottom: 32px;
+    margin: 32px 0;
     padding: 20px;
+    width: 100%;
 }
 
 #helpContainer {
@@ -358,7 +359,7 @@ button {
     height: 100vh;
     margin: 0;
     padding: 0;
-    transform: translateX(100vw);
+    transform: translateX(150vw);
     width: 100vw;
     z-index: 10;
 }

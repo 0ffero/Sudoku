@@ -3,7 +3,11 @@
     TO DO LIST
 */
 var vars = {
-    version: '1.9.6',
+    // version 2 just needs me to 
+    //     1.99a - update the help pages to show the new way to enter notes
+    //     1.99b - the notes for any saved bonus game should also be saved and loaded when needed
+    //     2.1: I'd also like the current game to be saved
+    version: '1.9.8',
     DEBUG: false,
     currentGameDifficulty: '',
     gameWon: false,
@@ -466,35 +470,8 @@ var vars = {
         vars.initKeyboardEventListeners();
         vars.initMouseEventListeners();
 
-        // initialise the fireworks class
-        vars.classFireworks = new Fireworks('fwCanvas', {
-            rocketMinSpeed: 7,
-            rocketMaxSpeed: 10,
-            gravity: 0.18,
-            particleCount: 160,
-            particleLife: 70,
-            spawnInterval: 1000,
-        });
-
-
-        vars.fireworksGL.class = new FireworksShader(document.getElementById('fireworksShaderCanvas'));
-        let FWGL = vars.fireworksGL.class;
-        if (FWGL.ERROR) {
-            switch (FWGL.ERROR) {
-                case 'NOWEBGL': // we dont have to do anything else here. the browser doesnt support webgl
-                    vars.fireworksGL.supported = false;
-                    vars.fireworksGL.class = null;
-                    // remove fireworksShaderContainer from the DOM - tested in console as all my browsers support webgl. try statement added for safety
-                    try {
-                        document.getElementById('fireworksShaderContainer').remove();
-                    } catch(e) {};
-                break;
-
-                default:
-                    console.error(`Unknown error initialising FireworksShader: ${FWGL.ERROR}`);
-                break;
-            };
-        };
+        // initialise the fireworks classes
+        vars.initFireworkClasses();
 
         difficultySelect.addEventListener('change', (d) => {
             d = d.target;
@@ -713,6 +690,37 @@ var vars = {
         });
     },
 
+    initFireworkClasses: ()=> {
+        vars.classFireworks = new Fireworks('fwCanvas', {
+            rocketMinSpeed: 7,
+            rocketMaxSpeed: 10,
+            gravity: 0.18,
+            particleCount: 160,
+            particleLife: 70,
+            spawnInterval: 1000,
+        });
+
+
+        vars.fireworksGL.class = new FireworksShader(document.getElementById('fireworksShaderCanvas'));
+        let FWGL = vars.fireworksGL.class;
+        if (FWGL.ERROR) {
+            switch (FWGL.ERROR) {
+                case 'NOWEBGL': // we dont have to do anything else here. the browser doesnt support webgl
+                    vars.fireworksGL.supported = false;
+                    vars.fireworksGL.class = null;
+                    // remove fireworksShaderContainer from the DOM - tested in console as all my browsers support webgl. try statement added for safety
+                    try {
+                        document.getElementById('fireworksShaderContainer').remove();
+                    } catch(e) {};
+                break;
+
+                default:
+                    console.error(`Unknown error initialising FireworksShader: ${FWGL.ERROR}`);
+                break;
+            };
+        };
+    },
+
     initKeyboardEventListeners: ()=> {
         window.addEventListener('keydown', (e) => {
             if (vars.gameWon) return;
@@ -725,7 +733,7 @@ var vars = {
                     else notes[r][c].add(n);
                     vars.draw();
                 };
-                if (e.key === 'Escape') { noteMode = null; }
+                if (e.key === 'Escape' || e.key === 'Shift' || e.key === 'Control') { noteMode = null; vars.draw(); }
                 return;
             };
 
@@ -768,8 +776,15 @@ var vars = {
                 vars.selected.c = (vars.selected.c + 1) % 9;
                 selInfo.textContent = `r${vars.selected.r + 1} c${vars.selected.c + 1}`;
                 vars.draw(); 
+            } else if (e.key === 'Shift' || e.key === 'Control') {
+                if (noteMode === null) {
+                    if (vars.selected.r === -1) return;
+
+                    noteMode = { r: vars.selected.r, c: vars.selected.c, corner: 1 };
+                    vars.draw();
+                };
             };
-            
+
             if (resetBadArray) {
                 vars.bad = [];
                 vars.draw();
@@ -1116,14 +1131,18 @@ var vars = {
                     ctx.font = `${Math.floor(cellPx * 0.22)}px sans-serif`;
                     const offsets = [[-0.65, -0.65], [0.65, -0.65], [-0.65, 0.65], [0.65, 0.65]];
                     let idx = 0;
-                    for (const val of notes[r][c]) {
+                    [...notes[r][c]].sort().forEach((val) => {
                         const ox = offsets[idx % 4][0] * cellPx * 0.4;
                         const oy = offsets[idx % 4][1] * cellPx * 0.4;
                         ctx.fillText(String(val), x + cellPx / 2 + ox, y + cellPx / 2 + oy);
                         idx++;
-                    };
+                    });
                 };
                 // Draw clickable corner highlights (light circles)
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+                if (noteMode && noteMode.r===r && noteMode.c===c) {
+                    ctx.beginPath(); ctx.arc(x + 6, y + 6, 4, 0, Math.PI * 2); ctx.fill();
+                };
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                 ctx.beginPath(); ctx.arc(x + 6, y + 6, 4, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + cellPx - 6, y + 6, 4, 0, Math.PI * 2); ctx.fill();
@@ -2007,7 +2026,7 @@ const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const cellPx = canvas.width / vars.cellWidth;
 
-// build a puzzle
+// build the empty puzzle grids
 vars.initial = vars.makeEmptyGrid();
 let puzzle = vars.makeEmptyGrid();
 let solution = vars.makeEmptyGrid();
